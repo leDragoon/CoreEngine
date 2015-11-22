@@ -3,6 +3,9 @@
 #include<WindowManager.h>
 #include<d3d11.h>
 #include<DirectXColors.h>
+#include<Model.h>
+#include<Shader.h>
+#include<d3dcompiler.h>
 
 class Renderer
 {
@@ -18,8 +21,12 @@ private:
 	int hardwareAntiAliasingCount;
 	bool windowedMode;
 	bool canBeInitialized;
-
+	vector<Model*> models;
 	void resize();
+	vector<VertexShader> vertexShaders;
+	vector<PixelShader> pixelShaders;
+	int currentVertexShader;
+	int currentPixelShader;
 public:
 	void init();
 	void render();
@@ -36,6 +43,12 @@ public:
 	bool getWindowedMode();
 	void readyToInitialize();
 	void close();
+	void loadAllModels();
+	void loadAllShaders();
+
+	void add(Model* toAdd);
+	void add(VertexShader toAdd);
+	void add(PixelShader toAdd);
 
 	Renderer();
 	Renderer(HWND handle);

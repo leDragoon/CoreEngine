@@ -23,6 +23,7 @@ public:
 	void setFilePath(string path);
 	string getFilePath();
 	vector<string> getFileContents();
+	string getFileExtension();
 
 	File();
 	File(string path);

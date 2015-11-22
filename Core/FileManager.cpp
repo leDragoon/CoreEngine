@@ -61,6 +61,31 @@ vector<string> File::getFileContents()
 	return fileContents;
 }
 
+string File::getFileExtension()
+{
+	string fileExtension = "Error";
+
+	for (int i = 0; i < filePath.size(); i++)
+	{
+		if (filePath[i] == '.')
+		{
+			fileExtension = "";
+			for (int j = i + 1; j < filePath.size(); j++)
+			{
+				fileExtension.push_back(filePath[j]);
+			}
+			break;
+		}
+	}
+
+	for (int i = 0; i < fileExtension.size(); i++)
+	{
+		fileExtension[i] = toupper(fileExtension[i]);
+	}
+
+	return fileExtension;
+}
+
 File::File()
 {
 	filePath = "";

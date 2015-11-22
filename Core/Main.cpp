@@ -2,6 +2,7 @@
 #include<WindowManager.h>
 #include<Renderer.h>
 #include<SettingsFile.h>
+#include<Scene.h>
 
 using namespace std;
 
@@ -31,7 +32,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 {
 	SettingsFile programSettings = SettingsFile("settings.ini");
 	window = CoreWindow(programSettings.getCategory("WINDOW"));
-
+	
 	WNDCLASSEX wClass;
 	
 	wClass.cbClsExtra = NULL;
@@ -39,8 +40,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	wClass.cbWndExtra = NULL;
 	wClass.hbrBackground = NULL;
 	wClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wClass.hIcon = LoadIcon(hInstance, IDI_APPLICATION);
-	wClass.hIconSm = LoadIcon(hInstance, IDI_APPLICATION);
+	wClass.hIcon = (HICON)LoadImage(NULL, "Icon.ico", IMAGE_ICON, 256, 256, LR_LOADFROMFILE | LR_SHARED);
+	wClass.hIconSm = (HICON)LoadImage(NULL, "Icon.ico", IMAGE_ICON, 256, 256, LR_LOADFROMFILE | LR_SHARED);
 	wClass.hInstance = hInstance;
 	wClass.lpfnWndProc = WndProc;
 	wClass.lpszClassName = "wClass";
@@ -64,6 +65,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	window.setHandle(hWnd);
 	renderer = Renderer(window);
 	renderer.init();
+	Scene rootScene;
+	rootScene.setRenderer(&renderer);
+	rootScene.load("Data//Scenes//root.scn", AssetListFile("Data//globalAssetList.alst").getAssetList());
 
 	ShowWindow(hWnd, true);
 	UpdateWindow(hWnd);
@@ -81,6 +85,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		renderer.render();
 	}
 
+	rootScene.unload();
 	renderer.close();
 	DestroyWindow(hWnd);
 	hWnd = NULL;

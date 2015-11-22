@@ -1,0 +1,4 @@
+
+vs mainVertexShader Data//Shaders//MainVertexShader.hlsl
+ps mainPixelShader Data//Shaders//MainPixelShader.hlsl
+m triangleModel Data//Models//triangle.obj
