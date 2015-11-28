@@ -18,7 +18,6 @@ class AssetListFile : public File
 {
 private:
 	void parse();
-	string* getNameAndPath(string toCheck);
 	AssetList assets;
 public:
 	void loadFile(string path);

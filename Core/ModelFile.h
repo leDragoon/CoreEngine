@@ -3,6 +3,12 @@
 #include<Vertex.h>
 #include<openctm.h>
 
+struct ModelData
+{
+	vector<Vertex> vertices;
+	vector<DWORD> indices;
+};
+
 class ModelFile : public File
 {
 private:
@@ -11,9 +17,9 @@ private:
 	void parseCTM(string path);
 	string convertToCTM();
 	string fileExtension;
-	vector<Vertex> mvertices;
+	ModelData mData;
 public:
-	vector<Vertex> loadFile(string path);
+	ModelData loadFile(string path);
 	ModelFile();
 	ModelFile(string path);
 };

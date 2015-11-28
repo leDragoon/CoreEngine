@@ -6,7 +6,7 @@
 class Scene
 {
 private:
-	Renderer renderer;
+	Renderer *renderer;
 	int sceneType;
 	string sceneName;
 	string filePath;

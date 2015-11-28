@@ -45,6 +45,10 @@ public:
 	void close();
 	void loadAllModels();
 	void loadAllShaders();
+	vector<VertexShader> getVertexShaders();
+	vector<PixelShader> getPixelShaders();
+	vector<Model*> getModels();
+	void setVertexShaders(vector<VertexShader> toSet);
 
 	void add(Model* toAdd);
 	void add(VertexShader toAdd);

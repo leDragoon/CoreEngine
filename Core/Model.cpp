@@ -1,16 +1,28 @@
 #include "Model.h"
 
-void Model::loadVertices(string modelFilePath)
+void Model::loadData(string modelFilePath)
 {
 	filePath = modelFilePath;
 	ModelFile mFile;
-	vertices = mFile.loadFile(modelFilePath);
+	ModelData mData = mFile.loadFile(modelFilePath);
+	vertices = mData.vertices;
+	indices = mData.indices;
+	numberOfVertices = mData.vertices.size();
+	numberOfIndices = mData.indices.size();
 	setDrawableType(CORE_DRAWABLETYPE_MODEL);
 }
 
 void Model::loadVertices(vector<Vertex> Vertices)
 {
 	vertices = Vertices;
+	numberOfVertices = Vertices.size();
+	setDrawableType(CORE_DRAWABLETYPE_MODEL);
+}
+
+void Model::loadIndices(vector<DWORD> Indices)
+{
+	indices = Indices;
+	numberOfIndices = Indices.size();
 	setDrawableType(CORE_DRAWABLETYPE_MODEL);
 }
 
@@ -32,6 +44,7 @@ void Model::loadVertices(vector<DirectX::XMFLOAT3> vertexPositions, vector<Direc
 		vertices.push_back(v);
 	}
 
+	numberOfVertices = vertexPositions.size();
 	setDrawableType(CORE_DRAWABLETYPE_MODEL);
 }
 
@@ -41,11 +54,25 @@ void Model::setVertexBuffer(ID3D11Buffer * VertexBuffer)
 	setDrawableType(CORE_DRAWABLETYPE_MODEL);
 }
 
+void Model::setIndexBuffer(ID3D11Buffer * IndexBuffer)
+{
+	indexBuffer = IndexBuffer;
+}
+
 void Model::setFilePath(string path)
 {
 	filePath = path;
 }
 
+int Model::getNumberOfVertices()
+{
+	return numberOfVertices;
+}
+
+int Model::getNumberOfIndices()
+{
+	return numberOfIndices;
+}
 
 string Model::getFilePath()
 {
@@ -57,9 +84,19 @@ vector<Vertex>* Model::getVertices()
 	return &vertices;
 }
 
+vector<DWORD>* Model::getIndices()
+{
+	return &indices;
+}
+
 ID3D11Buffer** Model::getVertexBuffer()
 {
 	return &vertexBuffer;
+}
+
+ID3D11Buffer ** Model::getIndexBuffer()
+{
+	return &indexBuffer;
 }
 
 void Model::draw()
@@ -72,6 +109,7 @@ void Model::close()
 	if (vertexBuffer)
 	{
 		vertexBuffer->Release();
+	//	indexBuffer->Release();
 	}
 }
 

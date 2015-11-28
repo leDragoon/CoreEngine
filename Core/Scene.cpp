@@ -23,7 +23,7 @@ void Scene::load()
 			{
 				if (toAdd.getName() == sceneAssetList.modelNames[j])
 				{
-					toAdd.loadVertices(sceneAssetList.modelPaths[i]);
+					toAdd.loadData(sceneAssetList.modelPaths[i]);
 				}
 			}
 
@@ -36,7 +36,7 @@ void Scene::load()
 		VertexShader shader;
 		shader.setName(sceneAssetList.vertexShaderNames[i]);
 		shader.setFilePath(sceneAssetList.vertexShaderPaths[i]);
-		renderer.add(shader);
+		renderer->add(shader);
 	}
 
 	for (unsigned int i = 0; i < sceneAssetList.pixelShaderNames.size(); i++)
@@ -44,16 +44,16 @@ void Scene::load()
 		PixelShader shader;
 		shader.setName(sceneAssetList.pixelShaderNames[i]);
 		shader.setFilePath(sceneAssetList.pixelShaderPaths[i]);
-		renderer.add(shader);
+		renderer->add(shader);
 	}
 
 	for (unsigned int i = 0; i < sceneModels.size(); i++)
 	{
-		renderer.add(&sceneModels[i]);
+		renderer->add(&sceneModels[i]);
 	}
 
-	renderer.loadAllShaders();
-	renderer.loadAllModels();
+	renderer->loadAllShaders();
+	renderer->loadAllModels();
 }
 
 void Scene::load(string FilePath)
@@ -122,7 +122,7 @@ void Scene::setAssetList(AssetList toSet)
 
 void Scene::setRenderer(Renderer *toSet)
 {
-	renderer = *toSet;
+	renderer = toSet;
 }
 
 Renderer * Scene::getRenderer()

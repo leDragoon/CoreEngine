@@ -73,7 +73,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	UpdateWindow(hWnd);
 
 	MSG msg;
-
+	
 	while (running)
 	{
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))

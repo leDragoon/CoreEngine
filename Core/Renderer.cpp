@@ -51,20 +51,26 @@ void Renderer::render()
 	
 	for (unsigned int i = 0; i < models.size(); i++)
 	{
-
 		if (models[i]->getVertexShaderCode() != currentVertexShader)
 		{
 			devCon->VSSetShader(*vertexShaders[models[i]->getVertexShaderCode()].getVertexShader(), NULL, NULL);
+			devCon->IASetInputLayout(*vertexShaders[models[i]->getVertexShaderCode()].getInputLayout());
+			currentVertexShader = models[i]->getVertexShaderCode();
 		}
 
 		if (models[i]->getPixelShaderCode() != currentPixelShader)
 		{
 			devCon->PSSetShader(*pixelShaders[models[i]->getPixelShaderCode()].getPixelShader(), NULL, NULL);
-		}
+			currentPixelShader = models[i]->getPixelShaderCode();
+		}	
 
-		devCon->IASetInputLayout(*vertexShaders[models[i]->getVertexShaderCode()].getInputLayout());
-		devCon->IASetVertexBuffers(0, 1, models[i]->getVertexBuffer(), (UINT*)sizeof(Vertex), 0);
-		devCon->Draw(sizeof(models[i]->getVertexBuffer()) / sizeof(Vertex), 0);
+		unsigned int vSize = sizeof(Vertex);
+		unsigned int offset = 0;
+
+
+		devCon->IASetVertexBuffers(0, 1, models[i]->getVertexBuffer(), &vSize, &offset);
+		devCon->IASetIndexBuffer(*models[i]->getIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+		devCon->DrawIndexed(models[i]->getNumberOfIndices(), 0, 0);
 	}
 
 	swap->Present(0, 0);
@@ -111,7 +117,6 @@ void Renderer::resize()
 		devCon->RSSetViewports(1, &viewPort);
 	}
 }
-
 
 vector2i Renderer::getSize()
 {
@@ -184,40 +189,58 @@ void Renderer::loadAllModels()
 	{
 		if (!models[i]->getIsInitialized())
 		{
-			D3D11_BUFFER_DESC bDesc;
-			bDesc.Usage = D3D11_USAGE_DEFAULT;
-			bDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-			bDesc.ByteWidth = sizeof(Vertex) * models[i]->getVertices()->size();
-			bDesc.CPUAccessFlags = NULL;
-			bDesc.MiscFlags = NULL;
-			bDesc.StructureByteStride = NULL;
+			D3D11_BUFFER_DESC vbDesc;
+			ZeroMemory(&vbDesc, sizeof(D3D11_BUFFER_DESC));
+			vbDesc.Usage = D3D11_USAGE_DEFAULT;
+			vbDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+			vbDesc.ByteWidth = sizeof(Vertex) * models[i]->getVertices()->size();
 
+			D3D11_BUFFER_DESC ibDesc;
+			ZeroMemory(&ibDesc, sizeof(D3D11_BUFFER_DESC));
+			ibDesc.Usage = D3D11_USAGE_DEFAULT;
+			ibDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+			ibDesc.ByteWidth = sizeof(DWORD) * models[i]->getIndices()->size();
+			
 			D3D11_SUBRESOURCE_DATA vBufferData;
+			ZeroMemory(&vBufferData, sizeof(D3D11_SUBRESOURCE_DATA));
 			vBufferData.pSysMem = models[i]->getVertices()->data();
-			vBufferData.SysMemPitch = NULL;
-			vBufferData.SysMemSlicePitch = NULL;
 
-			if (dev->CreateBuffer(&bDesc, &vBufferData, models[i]->getVertexBuffer()) != S_OK)
+			D3D11_SUBRESOURCE_DATA iBufferData;
+			ZeroMemory(&iBufferData, sizeof(D3D11_SUBRESOURCE_DATA));
+			iBufferData.pSysMem = models[i]->getIndices()->data();
+
+			if (dev->CreateBuffer(&vbDesc, &vBufferData, models[i]->getVertexBuffer()) != S_OK)
 			{
 				MessageBox(NULL, ("Could not create model: " + models[i]->getFilePath()).c_str(), "Model Creation Error", MB_ICONERROR | MB_OK);
 				exit(0);
 			}
+
+			if (dev->CreateBuffer(&ibDesc, &iBufferData, models[i]->getIndexBuffer()) != S_OK)
+			{
+				MessageBox(NULL, ("Could not create model: " + models[i]->getFilePath()).c_str(), "Model Creation Error", MB_ICONERROR | MB_OK);
+				exit(0);
+			}
+
+			models[i]->setIsInitialized(true);
+			models[i]->getVertices()->erase(models[i]->getVertices()->begin(), models[i]->getVertices()->end());
+			models[i]->getIndices()->erase(models[i]->getIndices()->begin(), models[i]->getIndices()->end());
 		}
 	}
 }
 
 void Renderer::loadAllShaders() 
 {
-	D3D11_INPUT_ELEMENT_DESC vertexLayoutDesc[] = { 
-	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 } };
+	D3D11_INPUT_ELEMENT_DESC vertexLayoutDesc[] = 
+	{ 
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 } 
+	};
 
 	for (unsigned int i = 0; i < vertexShaders.size(); i++)
 	{
 		if (!vertexShaders[i].getIsInitialized())
 		{
-			ID3D11VertexShader *vs;
 			ID3DBlob *shaderCode;
 			ID3DBlob *shaderCompilationErrors;
 			
@@ -230,15 +253,11 @@ void Renderer::loadAllShaders()
 			if (shaderCompilationErrors)
 			{
 				MessageBox(NULL, ("Error compiling shader from file: " + vertexShaders[i].getFilePath()).c_str(), "Shader Compilation Errors", MB_ICONERROR | MB_OK);
+				shaderCompilationErrors->Release();
 				exit(0);
 			}
 
-			if (shaderCompilationErrors)
-			{
-				shaderCompilationErrors->Release();
-			}
-
-			if (dev->CreateVertexShader(shaderCode->GetBufferPointer(), shaderCode->GetBufferSize(), NULL, &vs) != S_OK)
+			if (dev->CreateVertexShader(shaderCode->GetBufferPointer(), shaderCode->GetBufferSize(), NULL, vertexShaders[i].getVertexShader()) != S_OK)
 			{
 				MessageBox(NULL, ("Error creating shader: " + vertexShaders[i].getFilePath()).c_str(), "Shader Creation Error", MB_ICONERROR | MB_OK);
 				exit(0);
@@ -250,9 +269,8 @@ void Renderer::loadAllShaders()
 				exit(0);
 			}
 
-			vertexShaders[i].setInitialized(true);
 			shaderCode->Release();
-			vs->Release();
+			vertexShaders[i].setInitialized(true);
 		}
 	}
 
@@ -260,7 +278,6 @@ void Renderer::loadAllShaders()
 	{
 		if (!pixelShaders[i].getIsInitialized())
 		{
-			ID3D11PixelShader *ps;
 			ID3DBlob *shaderCode;
 			ID3DBlob *shaderCompilationErrors;
 
@@ -280,17 +297,36 @@ void Renderer::loadAllShaders()
 				shaderCompilationErrors->Release();
 			}
 
-			if (dev->CreatePixelShader(shaderCode->GetBufferPointer(), shaderCode->GetBufferSize(), NULL, &ps) != S_OK)
+			if (dev->CreatePixelShader(shaderCode->GetBufferPointer(), shaderCode->GetBufferSize(), NULL, pixelShaders[i].getPixelShader()) != S_OK)
 			{
 				MessageBox(NULL, ("Error creating shader: " + pixelShaders[i].getFilePath()).c_str(), "Shader Creation Error", MB_ICONERROR | MB_OK);
 				exit(0);
 			}
 
-			pixelShaders[i].setInitialized(true);
 			shaderCode->Release();
-			ps->Release();
+			pixelShaders[i].setInitialized(true);
 		}
 	}
+}
+
+vector<VertexShader> Renderer::getVertexShaders()
+{
+	return vertexShaders;
+}
+
+vector<PixelShader> Renderer::getPixelShaders()
+{
+	return pixelShaders;
+}
+
+vector<Model*> Renderer::getModels()
+{
+	return models;
+}
+
+void Renderer::setVertexShaders(vector<VertexShader> toSet)
+{
+	vertexShaders = toSet;
 }
 
 void Renderer::add(Model* toAdd)
@@ -300,6 +336,7 @@ void Renderer::add(Model* toAdd)
 		if (toAdd->getVertexShaderName() == vertexShaders[i].getName())
 		{
 			toAdd->setVertexShader(i);
+			
 		}
 	}
 

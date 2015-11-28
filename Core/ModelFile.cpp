@@ -42,6 +42,7 @@ void ModelFile::parseCTM(string path)
 	if (ctmGetError(cContext) == CTM_NONE)
 	{
 		CTMuint vertCount = ctmGetInteger(cContext, CTM_VERTEX_COUNT);
+		CTMuint triCount = ctmGetInteger(cContext, CTM_TRIANGLE_COUNT);
 		const CTMfloat *vertices = ctmGetFloatArray(cContext, CTM_VERTICES);
 		const CTMfloat *normals = ctmGetFloatArray(cContext, CTM_NORMALS);
 		const CTMfloat *uvs = ctmGetFloatArray(cContext, CTM_UV_MAP_1);
@@ -58,11 +59,16 @@ void ModelFile::parseCTM(string path)
 			v.normal.x = normals[onVert];
 			v.normal.y = normals[onVert + 1];
 			v.normal.z = normals[onVert + 2];
-			//v.uv.x = uvs[onUv];
-			//v.uv.y = uvs[onUv + 1];
+	 		v.uv.x = uvs[onUv];
+			v.uv.y = uvs[onUv + 1];
 			onVert += 3;
 			onUv += 2;
-			mvertices.push_back(v);
+			mData.vertices.push_back(v);
+		}
+
+		for (unsigned int i = 0; i < triCount * 3; i++)
+		{
+			mData.indices.push_back(indices[i]);
 		}
 	}
 
@@ -89,12 +95,12 @@ string ModelFile::convertToCTM()
 	return filePathWithoutExtension;
 }
 
-vector<Vertex> ModelFile::loadFile(string path)
+ModelData ModelFile::loadFile(string path)
 {
 	load(path);
 	fileExtension = getFileExtension();
 	parse();
-	return mvertices;
+	return mData;
 }
 
 ModelFile::ModelFile()
