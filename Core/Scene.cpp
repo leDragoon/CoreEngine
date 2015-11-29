@@ -47,6 +47,24 @@ void Scene::load()
 		renderer->add(shader);
 	}
 
+	for (unsigned int i = 0; i < sceneAssetList.cameraNames.size(); i++)
+	{
+		Camera camera;
+
+		for (unsigned int j = 0; j < objectInstances.size(); j++)
+		{
+			if (objectInstances[j].objectName == sceneAssetList.cameraNames[i])
+			{
+				camera.setPosition(objectInstances[j].position);
+				camera.setRotation(objectInstances[j].rotation);
+				camera.setName(objectInstances[j].objectName);
+				camera.setFieldOfView(75);
+			}
+		}
+		
+		renderer->add(&camera);
+	}
+
 	for (unsigned int i = 0; i < sceneModels.size(); i++)
 	{
 		renderer->add(&sceneModels[i]);
@@ -164,7 +182,12 @@ int Scene::getSceneType()
 	return 0;
 }
 
-void Scene::add(Drawable toAdd)
+void Scene::add(Camera *toAdd)
+{
+
+}
+
+void Scene::add(Drawable *toAdd)
 {
 
 }

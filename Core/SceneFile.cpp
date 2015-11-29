@@ -32,25 +32,60 @@ void SceneFile::parse()
 				else if (fileContents[j][0] == 'p')
 				{
 					string vectorInfo = fileContents[j];
-					vectorInfo.erase(vectorInfo.begin(), vectorInfo.begin() + 2);
+					vectorInfo.erase(vectorInfo.begin(), vectorInfo.begin());
 					vector<string> axes = separateIntoSections(vectorInfo);
-					instance.position = { stof(axes[0]), stof(axes[1]), stof(axes[2]) };
+					instance.position =  DirectX::XMFLOAT3(stof(axes[1]), stof(axes[2]), stof(axes[3]));
 				}
 
 				else if (fileContents[j][0] == 'r')
 				{
 					string vectorInfo = fileContents[j];
-					vectorInfo.erase(vectorInfo.begin(), vectorInfo.begin() + 2);
+					vectorInfo.erase(vectorInfo.begin(), vectorInfo.begin());
 					vector<string> axes = separateIntoSections(vectorInfo);
-					instance.position = { stof(axes[0]), stof(axes[1]), stof(axes[2]) };
+					instance.rotation = DirectX::XMFLOAT3(stof(axes[1]), stof(axes[2]), stof(axes[3]));
 				}
 
 				else if (fileContents[j][0] == 's')
 				{
 					string vectorInfo = fileContents[j];
-					vectorInfo.erase(vectorInfo.begin(), vectorInfo.begin() + 2);
+					vectorInfo.erase(vectorInfo.begin(), vectorInfo.begin());
 					vector<string> axes = separateIntoSections(vectorInfo);
-					instance.position = { stof(axes[0]), stof(axes[1]), stof(axes[2]) };
+					instance.scale = DirectX::XMFLOAT3(stof(axes[1]), stof(axes[2]), stof(axes[3]));
+				}
+			}
+
+			objectInstances.push_back(instance);
+		}
+
+		else if (fileContents[i][0] == 'c' && fileContents[i][1] == 'm')
+		{
+			ObjectInstance instance;
+			instance.type = 10;
+
+			for (int j = i; fileContents[j][0] != 'e'; j++)
+			{
+				if (fileContents[j][0] == 'n' && fileContents[j][1] == 'm')
+				{
+					for (unsigned int k = 3; k < fileContents[j].size(); k++)
+					{
+						instance.objectName.push_back(fileContents[j][k]);
+					}
+				}
+
+				else if (fileContents[j][0] == 'p')
+				{
+					string vectorInfo = fileContents[j];
+					vectorInfo.erase(vectorInfo.begin(), vectorInfo.begin());
+					vector<string> axes = separateIntoSections(vectorInfo);
+					instance.position = DirectX::XMFLOAT3(stof(axes[1]), stof(axes[2]), stof(axes[3]));
+				}
+
+				else if (fileContents[j][0] == 'r')
+				{
+					string vectorInfo = fileContents[j];
+					vectorInfo.erase(vectorInfo.begin(), vectorInfo.begin());
+					vector<string> axes = separateIntoSections(vectorInfo);
+					instance.rotation = DirectX::XMFLOAT3(stof(axes[1]), stof(axes[2]), stof(axes[3]));
 				}
 			}
 

@@ -6,6 +6,9 @@
 #include<Model.h>
 #include<Shader.h>
 #include<d3dcompiler.h>
+#include<Camera.h>
+
+using namespace DirectX;
 
 class Renderer
 {
@@ -15,6 +18,9 @@ private:
 	ID3D11DeviceContext *devCon;
 	IDXGISwapChain *swap;
 	ID3D11RenderTargetView *backBuffer;
+	ID3D11DepthStencilView *depthStencilView;
+	ID3D11Texture2D *depthStencilBuffer;
+	ID3D11Buffer *perObjectConstantBuffer;
 	int outputWidth;
 	int outputHeight;
 	int refreshRate;
@@ -27,6 +33,12 @@ private:
 	vector<PixelShader> pixelShaders;
 	int currentVertexShader;
 	int currentPixelShader;
+	vector<Camera> cameras;
+
+	struct perObjectData
+	{
+		XMMATRIX WorldViewProjection;
+	}perObjectDataToBeSent;
 public:
 	void init();
 	void render();
@@ -45,6 +57,7 @@ public:
 	void close();
 	void loadAllModels();
 	void loadAllShaders();
+	
 	vector<VertexShader> getVertexShaders();
 	vector<PixelShader> getPixelShaders();
 	vector<Model*> getModels();
@@ -53,6 +66,7 @@ public:
 	void add(Model* toAdd);
 	void add(VertexShader toAdd);
 	void add(PixelShader toAdd);
+	void add(Camera *toAdd);
 
 	Renderer();
 	Renderer(HWND handle);

@@ -3,7 +3,8 @@
 #include<DirectXMath.h>
 #include<Util.h>
 
-#define CORE_GAMEOBJECTTYPE_MODEL 1
+#define CORE_OBJECTTYPE_MODEL 1
+#define CORE_OBJECTTYPE_CAMERA 10
 
 using std::stof;
 

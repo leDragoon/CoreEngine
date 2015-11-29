@@ -1,6 +1,5 @@
 #include "Renderer.h"
 
-
 void Renderer::init()
 {
 	if (canBeInitialized)
@@ -18,6 +17,7 @@ void Renderer::init()
 		swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		swapDesc.OutputWindow = hWnd;
 		swapDesc.SampleDesc.Count = hardwareAntiAliasingCount;
+		swapDesc.SampleDesc.Quality = 0;
 		swapDesc.Windowed = windowedMode;
 		swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
@@ -29,13 +29,41 @@ void Renderer::init()
 			exit(0);
 		}
 
+		D3D11_TEXTURE2D_DESC depthStencilDesc;
+		ZeroMemory(&depthStencilDesc, sizeof(D3D11_TEXTURE2D_DESC));
+		depthStencilDesc.Width = outputWidth;
+		depthStencilDesc.Height = outputHeight;
+		depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		depthStencilDesc.MipLevels = 1;
+		depthStencilDesc.ArraySize = 1;
+		depthStencilDesc.SampleDesc.Count = 1;
+		depthStencilDesc.SampleDesc.Quality = 0;
+		depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
+		depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+		dev->CreateTexture2D(&depthStencilDesc, NULL, &depthStencilBuffer);
+		dev->CreateDepthStencilView(depthStencilBuffer, NULL, &depthStencilView);
+
+		D3D11_BUFFER_DESC perObjectBufferDesc;
+		ZeroMemory(&perObjectBufferDesc, sizeof(D3D11_BUFFER_DESC));
+		perObjectBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		perObjectBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		perObjectBufferDesc.ByteWidth = sizeof(perObjectData);
+
+		if (dev->CreateBuffer(&perObjectBufferDesc, NULL, &perObjectConstantBuffer) != S_OK)
+		{
+			MessageBox(NULL, "Could not create per object constant buffer", "Buffer creation error", MB_ICONERROR | MB_OK);
+			exit(0);
+		}
+
 		ID3D11Texture2D *backBufferTex;
 		swap->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBufferTex);
 		dev->CreateRenderTargetView(backBufferTex, NULL, &backBuffer);
 		backBufferTex->Release();
-		devCon->OMSetRenderTargets(1, &backBuffer, NULL);
+		devCon->OMSetRenderTargets(1, &backBuffer, depthStencilView);
 		devCon->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		resize();
+
 	}
 
 	else
@@ -47,33 +75,44 @@ void Renderer::init()
 
 void Renderer::render()
 {
-	devCon->ClearRenderTargetView(backBuffer, DirectX::Colors::Black);
-	
-	for (unsigned int i = 0; i < models.size(); i++)
+	for (unsigned int i = 0; i < cameras.size(); i++)
 	{
-		if (models[i]->getVertexShaderCode() != currentVertexShader)
+		devCon->ClearRenderTargetView(backBuffer, DirectX::Colors::Black);
+		devCon->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
+
+		for (unsigned int j = 0; j < models.size(); j++)
 		{
-			devCon->VSSetShader(*vertexShaders[models[i]->getVertexShaderCode()].getVertexShader(), NULL, NULL);
-			devCon->IASetInputLayout(*vertexShaders[models[i]->getVertexShaderCode()].getInputLayout());
-			currentVertexShader = models[i]->getVertexShaderCode();
+			models[j]->translate(XMFLOAT3(0.f, 0.f, 0.f));
+			if (models[j]->getVertexShaderCode() != currentVertexShader)
+			{
+				devCon->VSSetShader(*vertexShaders[models[j]->getVertexShaderCode()].getVertexShader(), NULL, NULL);
+				devCon->IASetInputLayout(*vertexShaders[models[j]->getVertexShaderCode()].getInputLayout());
+				currentVertexShader = models[j]->getVertexShaderCode();
+			}
+
+			if (models[j]->getPixelShaderCode() != currentPixelShader)
+			{
+				devCon->PSSetShader(*pixelShaders[models[j]->getPixelShaderCode()].getPixelShader(), NULL, NULL);
+				currentPixelShader = models[j]->getPixelShaderCode();
+			}
+
+			unsigned int vSize = sizeof(Vertex);
+			unsigned int offset = 0;
+			
+			XMMATRIX worldViewProjection = models[j]->getWorldMatrix() * cameras[i].getViewMatrix() * cameras[i].getProjectionMatrix();
+
+			perObjectDataToBeSent.WorldViewProjection = XMMatrixTranspose(worldViewProjection);
+
+			devCon->UpdateSubresource(perObjectConstantBuffer, NULL, NULL, &perObjectDataToBeSent, NULL, NULL);
+			devCon->VSSetConstantBuffers(0, 1, &perObjectConstantBuffer);
+
+			devCon->IASetVertexBuffers(0, 1, models[j]->getVertexBuffer(), &vSize, &offset);
+			devCon->IASetIndexBuffer(*models[j]->getIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+			devCon->DrawIndexed(models[j]->getNumberOfIndices(), 0, 0);
 		}
 
-		if (models[i]->getPixelShaderCode() != currentPixelShader)
-		{
-			devCon->PSSetShader(*pixelShaders[models[i]->getPixelShaderCode()].getPixelShader(), NULL, NULL);
-			currentPixelShader = models[i]->getPixelShaderCode();
-		}	
-
-		unsigned int vSize = sizeof(Vertex);
-		unsigned int offset = 0;
-
-
-		devCon->IASetVertexBuffers(0, 1, models[i]->getVertexBuffer(), &vSize, &offset);
-		devCon->IASetIndexBuffer(*models[i]->getIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
-		devCon->DrawIndexed(models[i]->getNumberOfIndices(), 0, 0);
+		swap->Present(0, 0);
 	}
-
-	swap->Present(0, 0);
 }
 
 
@@ -111,6 +150,13 @@ void Renderer::resize()
 	viewPort.TopLeftY = 0;
 	viewPort.Width = (FLOAT)outputWidth;
 	viewPort.Height = (FLOAT)outputHeight;
+	viewPort.MinDepth = 0.0;
+	viewPort.MaxDepth = 1.0;
+
+	for (unsigned int i = 0; i < cameras.size(); i++)
+	{
+		cameras[i].setRenderDims(outputWidth, outputHeight);
+	}
 
 	if (devCon)
 	{
@@ -166,6 +212,9 @@ void Renderer::close()
 	devCon->Release();
 	swap->Release();
 	backBuffer->Release();
+	depthStencilBuffer->Release();
+	depthStencilView->Release();
+	perObjectConstantBuffer->Release();
 
 	for (unsigned int i = 0; i < vertexShaders.size(); i++)
 	{
@@ -359,6 +408,18 @@ void Renderer::add(VertexShader toAdd)
 void Renderer::add(PixelShader toAdd)
 {
 	pixelShaders.push_back(toAdd);
+}
+
+void Renderer::add(Camera *toAdd)
+{
+	Camera ToAdd = Camera();
+	ToAdd.setFieldOfView(toAdd->getFieldOfView());
+	ToAdd.setName(toAdd->getName());
+	ToAdd.setPosition(toAdd->getPosition());
+	ToAdd.setRotation(toAdd->getRotation());
+	ToAdd.setRenderDims(outputWidth, outputHeight);
+	ToAdd.initialize();
+	cameras.push_back(ToAdd);
 }
 
 Renderer::Renderer()

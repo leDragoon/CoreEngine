@@ -8,6 +8,7 @@ struct AssetList
 {
 	vector<string> modelNames;
 	vector<string> modelPaths;
+	vector<string> cameraNames;
 	vector<string> vertexShaderNames;
 	vector<string> vertexShaderPaths;
 	vector<string> pixelShaderNames;

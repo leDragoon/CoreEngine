@@ -17,6 +17,13 @@ void AssetListFile::parse()
 				assets.modelPaths.push_back(sections[1]);
 			}
 
+			else if (fileContents[i][0] == 'c' && fileContents[i][1] == 'm')
+			{
+				string sectionsMinusType = fileContents[i];
+				sectionsMinusType.erase(sectionsMinusType.begin(), sectionsMinusType.begin() + 3);
+				assets.cameraNames.push_back(sectionsMinusType);
+			}
+
 			else if (fileContents[i][0] == 'v' && fileContents[i][1] == 's')
 			{
 				string sectionsMinusType = fileContents[i];

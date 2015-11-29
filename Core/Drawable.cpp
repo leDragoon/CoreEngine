@@ -1,5 +1,18 @@
 #include "Drawable.h"
 
+void Drawable::calculateWorldMatrix()
+{
+	worldMatrix = DirectX::XMMatrixIdentity();
+	DirectX::XMMATRIX posMat;
+	DirectX::XMMATRIX rotMat;
+	DirectX::XMMATRIX sclMat;
+
+	posMat = DirectX::XMMatrixTranslation(worldPosition.x, worldPosition.y, worldPosition.z);
+	rotMat = DirectX::XMMatrixRotationX(DirectX::XMConvertToRadians(worldRotation.x)) * DirectX::XMMatrixRotationY(DirectX::XMConvertToDegrees(worldRotation.y)) * DirectX::XMMatrixRotationZ(DirectX::XMConvertToDegrees(worldRotation.z));
+	sclMat = DirectX::XMMatrixScaling(worldScale.x, worldScale.y, worldScale.z);
+	worldMatrix = sclMat * rotMat * posMat;
+}
+
 int Drawable::getDrawableType()
 {
 	return type;
@@ -65,16 +78,43 @@ string Drawable::getPixelShaderName()
 void Drawable::setPosition(DirectX::XMFLOAT3 position)
 {
 	worldPosition = position;
+	calculateWorldMatrix();
 }
 
 void Drawable::setRotation(DirectX::XMFLOAT3 rotation)
 {
 	worldRotation = rotation;
+	calculateWorldMatrix();
 }
 
 void Drawable::setScale(DirectX::XMFLOAT3 scale)
 {
 	worldScale = scale;
+	calculateWorldMatrix();
+}
+
+void Drawable::translate(DirectX::XMFLOAT3 toTranslate)
+{
+	worldPosition.x += toTranslate.x;
+	worldPosition.y += toTranslate.y;
+	worldPosition.z += toTranslate.z;
+	calculateWorldMatrix();
+}
+
+void Drawable::rotate(DirectX::XMFLOAT3 toRotate)
+{
+	worldRotation.x += toRotate.x;
+	worldRotation.y += toRotate.y;
+	worldRotation.z += toRotate.z;
+	calculateWorldMatrix();
+}
+
+void Drawable::scale(DirectX::XMFLOAT3 toScale)
+{
+	worldScale.x += toScale.x;
+	worldScale.y += toScale.y;
+	worldScale.z += toScale.z;
+	calculateWorldMatrix();
 }
 
 void Drawable::setName(string toSet)
@@ -95,6 +135,11 @@ void Drawable::setIdentifier(int toSet)
 int Drawable::getIdentifier()
 {
 	return identifier;
+}
+
+DirectX::XMMATRIX Drawable::getWorldMatrix()
+{
+	return worldMatrix;
 }
 
 DirectX::XMFLOAT3 Drawable::getPosition()

@@ -35,7 +35,8 @@ public:
 	void setSceneType(int typeToSet);
 	int getSceneType();
 
-	void add(Drawable toAdd);
+	void add(Camera *toAdd);
+	void add(Drawable *toAdd);
 	void add(Shader *toAdd);
 
 	Scene();

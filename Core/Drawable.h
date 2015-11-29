@@ -16,6 +16,7 @@ protected:
 	DirectX::XMFLOAT3 worldPosition;
 	DirectX::XMFLOAT3 worldRotation;
 	DirectX::XMFLOAT3 worldScale;
+	DirectX::XMMATRIX worldMatrix;
 	int vertexShaderCode;
 	int pixelShaderCode;
 	bool needsToBeInitialized = true;
@@ -23,6 +24,7 @@ protected:
 	string vertexShaderName;
 	string pixelShaderName;
 	bool shaderCodeShouldBeSet = true;
+	void calculateWorldMatrix();
 public:
 	int getDrawableType();
 	void setIsInitialized(bool toSet);
@@ -38,10 +40,14 @@ public:
 	void setPosition(DirectX::XMFLOAT3 position);
 	void setRotation(DirectX::XMFLOAT3 rotation);
 	void setScale(DirectX::XMFLOAT3 scale);
+	void translate(DirectX::XMFLOAT3 toTranslate);
+	void rotate(DirectX::XMFLOAT3 toRotate);
+	void scale(DirectX::XMFLOAT3 toScale);
 	void setName(string toSet);
 	string getName();
 	void setIdentifier(int toSet);
 	int getIdentifier();
+	DirectX::XMMATRIX getWorldMatrix();
 	DirectX::XMFLOAT3 getPosition();
 	DirectX::XMFLOAT3 getRotation();
 	DirectX::XMFLOAT3 getScale();
