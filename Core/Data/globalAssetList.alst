@@ -2,4 +2,7 @@
 vs mainVertexShader Data//Shaders//MainVertexShader.hlsl
 ps mainPixelShader Data//Shaders//MainPixelShader.hlsl
 cm mainCamera
-m triangleModel Data//Models//triangle.obj
+m sphereModel Data//Models//sphere.obj
+l mainLight Data//Lights//mainLight.lgt
+t defTexture Data//Textures//defTexture.png
+mt defaultMaterial Data//Materials//defMaterial.mat

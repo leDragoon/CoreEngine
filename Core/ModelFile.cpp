@@ -97,7 +97,7 @@ string ModelFile::convertToCTM()
 
 ModelData ModelFile::loadFile(string path)
 {
-	load(path);
+	setFilePath(path);
 	fileExtension = getFileExtension();
 	parse();
 	return mData;

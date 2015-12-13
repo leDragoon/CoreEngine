@@ -7,6 +7,8 @@
 #include<Shader.h>
 #include<d3dcompiler.h>
 #include<Camera.h>
+#include<Light.h>
+#include<Material.h>
 
 using namespace DirectX;
 
@@ -20,7 +22,9 @@ private:
 	ID3D11RenderTargetView *backBuffer;
 	ID3D11DepthStencilView *depthStencilView;
 	ID3D11Texture2D *depthStencilBuffer;
-	ID3D11Buffer *perObjectConstantBuffer;
+	ID3D11Buffer *perObjectVertexDataConstantBuffer;
+	ID3D11Buffer *perObjectPixelDataConstantBuffer;
+	ID3D11Buffer *perLightDataConstantBuffer;
 	int outputWidth;
 	int outputHeight;
 	int refreshRate;
@@ -34,11 +38,28 @@ private:
 	int currentVertexShader;
 	int currentPixelShader;
 	vector<Camera> cameras;
+	vector<Light> lights;
 
-	struct perObjectData
+	struct perObjectVertexData
 	{
-		XMMATRIX WorldViewProjection;
-	}perObjectDataToBeSent;
+		XMMATRIX world;
+		XMMATRIX view;
+		XMMATRIX WorldViewProjection;	
+	}perObjectVertexDataToBeSent;
+
+	struct perObjectPixelData
+	{
+		XMMATRIX view;
+	}perObjectPixelDataToBeSent;
+
+	struct perLightData
+	{
+		XMVECTOR lightPosition;
+		XMVECTOR lightDirection;
+		XMVECTOR lightColor;
+		int lightType;
+	}perLightDataToBeSent;
+
 public:
 	void init();
 	void render();
@@ -57,9 +78,13 @@ public:
 	void close();
 	void loadAllModels();
 	void loadAllShaders();
-	
+	void loadAllMaterials();
+	ID3D11Device **getDevice();
+
 	vector<VertexShader> getVertexShaders();
 	vector<PixelShader> getPixelShaders();
+	vector<Texture> textures;
+	vector<Material> materials;
 	vector<Model*> getModels();
 	void setVertexShaders(vector<VertexShader> toSet);
 
@@ -67,6 +92,9 @@ public:
 	void add(VertexShader toAdd);
 	void add(PixelShader toAdd);
 	void add(Camera *toAdd);
+	void add(Light toAdd);
+	void add(Texture toAdd);
+	void add(Material toAdd);
 
 	Renderer();
 	Renderer(HWND handle);

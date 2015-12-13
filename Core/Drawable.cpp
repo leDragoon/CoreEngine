@@ -44,6 +44,16 @@ void Drawable::setVertexShader(int shaderCode)
 	vertexShaderCode = shaderCode;
 }
 
+void Drawable::setMaterialCode(int toSet)
+{
+	materialCode = toSet;
+}
+
+int Drawable::getMaterialCode()
+{
+	return materialCode;
+}
+
 int Drawable::getVertexShaderCode()
 {
 	return vertexShaderCode;

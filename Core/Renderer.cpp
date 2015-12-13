@@ -44,15 +44,39 @@ void Renderer::init()
 		dev->CreateTexture2D(&depthStencilDesc, NULL, &depthStencilBuffer);
 		dev->CreateDepthStencilView(depthStencilBuffer, NULL, &depthStencilView);
 
-		D3D11_BUFFER_DESC perObjectBufferDesc;
-		ZeroMemory(&perObjectBufferDesc, sizeof(D3D11_BUFFER_DESC));
-		perObjectBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-		perObjectBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		perObjectBufferDesc.ByteWidth = sizeof(perObjectData);
+		D3D11_BUFFER_DESC perObjectVertexDataBufferDesc;
+		ZeroMemory(&perObjectVertexDataBufferDesc, sizeof(D3D11_BUFFER_DESC));
+		perObjectVertexDataBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		perObjectVertexDataBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		perObjectVertexDataBufferDesc.ByteWidth = sizeof(perObjectVertexData);
 
-		if (dev->CreateBuffer(&perObjectBufferDesc, NULL, &perObjectConstantBuffer) != S_OK)
+		if (dev->CreateBuffer(&perObjectVertexDataBufferDesc, NULL, &perObjectVertexDataConstantBuffer) != S_OK)
 		{
-			MessageBox(NULL, "Could not create per object constant buffer", "Buffer creation error", MB_ICONERROR | MB_OK);
+			MessageBox(NULL, "Could not create per object vertex data constant buffer", "Buffer creation error", MB_ICONERROR | MB_OK);
+			exit(0);
+		}
+
+		D3D11_BUFFER_DESC perObjectPixelDataBufferDesc;
+		ZeroMemory(&perObjectPixelDataBufferDesc, sizeof(D3D11_BUFFER_DESC));
+		perObjectPixelDataBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		perObjectPixelDataBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		perObjectPixelDataBufferDesc.ByteWidth = sizeof(perObjectPixelData);
+
+		if (dev->CreateBuffer(&perObjectPixelDataBufferDesc, NULL, &perObjectPixelDataConstantBuffer) != S_OK)
+		{
+			MessageBox(NULL, "Could not create per object pixel data constant buffer", "Buffer creation error", MB_ICONERROR | MB_OK);
+			exit(0);
+		}
+
+		D3D11_BUFFER_DESC perLightBufferDesc;
+		ZeroMemory(&perLightBufferDesc, sizeof(D3D11_BUFFER_DESC));
+		perLightBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		perLightBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		perLightBufferDesc.ByteWidth = sizeof(perLightData);
+
+		if (dev->CreateBuffer(&perLightBufferDesc, NULL, &perLightDataConstantBuffer) != S_OK)
+		{
+			MessageBox(NULL, "Could not create per light data constant buffer", "Buffer creation error", MB_ICONERROR | MB_OK);	
 			exit(0);
 		}
 
@@ -63,7 +87,6 @@ void Renderer::init()
 		devCon->OMSetRenderTargets(1, &backBuffer, depthStencilView);
 		devCon->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		resize();
-
 	}
 
 	else
@@ -82,7 +105,29 @@ void Renderer::render()
 
 		for (unsigned int j = 0; j < models.size(); j++)
 		{
-			models[j]->translate(XMFLOAT3(0.f, 0.f, 0.f));
+			perObjectVertexDataToBeSent.WorldViewProjection = XMMatrixTranspose(cameras[i].getProjectionMatrix());
+			perObjectVertexDataToBeSent.view = XMMatrixTranspose(cameras[i].getViewMatrix());
+			perObjectVertexDataToBeSent.world = XMMatrixTranspose(models[j]->getWorldMatrix());
+			perObjectPixelDataToBeSent.view = XMMatrixTranspose(cameras[i].getViewMatrix());
+			devCon->UpdateSubresource(perObjectVertexDataConstantBuffer, NULL, NULL, &perObjectVertexDataToBeSent, NULL, NULL);
+			devCon->UpdateSubresource(perObjectPixelDataConstantBuffer, NULL, NULL, &perObjectPixelDataToBeSent, NULL, NULL);
+			devCon->VSSetConstantBuffers(0, 1, &perObjectVertexDataConstantBuffer);
+			devCon->PSSetConstantBuffers(1, 1, &perObjectPixelDataConstantBuffer);
+
+			int mCode = models[j]->getMaterialCode();
+			int numberOfTextures = (int)materials[mCode].getTextureCodes().size();
+
+			for (unsigned int k = 0; k < materials[mCode].getTextureCodes().size(); k++)
+			{
+				ID3D11ShaderResourceView* const v = textures[materials[mCode].getTextureCodes()[k]].getResource();
+				devCon->PSSetShaderResources(k, 1, &v);
+			}
+
+			unsigned int vSize = sizeof(Vertex);
+			unsigned int offset = 0;
+			devCon->IASetVertexBuffers(0, 1, models[j]->getVertexBuffer(), &vSize, &offset);
+			devCon->IASetIndexBuffer(*models[j]->getIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+
 			if (models[j]->getVertexShaderCode() != currentVertexShader)
 			{
 				devCon->VSSetShader(*vertexShaders[models[j]->getVertexShaderCode()].getVertexShader(), NULL, NULL);
@@ -96,19 +141,17 @@ void Renderer::render()
 				currentPixelShader = models[j]->getPixelShaderCode();
 			}
 
-			unsigned int vSize = sizeof(Vertex);
-			unsigned int offset = 0;
-			
-			XMMATRIX worldViewProjection = models[j]->getWorldMatrix() * cameras[i].getViewMatrix() * cameras[i].getProjectionMatrix();
+			for (unsigned int k = 0; k < lights.size(); k++)
+			{
+				perLightDataToBeSent.lightPosition = XMVectorSet(lights[k].getLightPosition().x, lights[k].getLightPosition().y, lights[k].getLightPosition().z, 1.0);
+				perLightDataToBeSent.lightDirection = XMVectorSet(lights[k].getLightDirection().x, lights[k].getLightDirection().y, lights[k].getLightDirection().z, 1.0);
+				perLightDataToBeSent.lightColor = XMVectorSet(lights[k].getLightColor().x, lights[k].getLightColor().y, lights[k].getLightColor().z, 1.0);
+				perLightDataToBeSent.lightType = lights[k].getLightType();
+				devCon->UpdateSubresource(perLightDataConstantBuffer, NULL, NULL, &perLightDataToBeSent, NULL, NULL);
+				devCon->PSSetConstantBuffers(2, 1, &perLightDataConstantBuffer);
 
-			perObjectDataToBeSent.WorldViewProjection = XMMatrixTranspose(worldViewProjection);
-
-			devCon->UpdateSubresource(perObjectConstantBuffer, NULL, NULL, &perObjectDataToBeSent, NULL, NULL);
-			devCon->VSSetConstantBuffers(0, 1, &perObjectConstantBuffer);
-
-			devCon->IASetVertexBuffers(0, 1, models[j]->getVertexBuffer(), &vSize, &offset);
-			devCon->IASetIndexBuffer(*models[j]->getIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
-			devCon->DrawIndexed(models[j]->getNumberOfIndices(), 0, 0);
+				devCon->DrawIndexed(models[j]->getNumberOfIndices(), 0, 0);
+			}
 		}
 
 		swap->Present(0, 0);
@@ -214,7 +257,9 @@ void Renderer::close()
 	backBuffer->Release();
 	depthStencilBuffer->Release();
 	depthStencilView->Release();
-	perObjectConstantBuffer->Release();
+	perObjectVertexDataConstantBuffer->Release();
+	perObjectPixelDataConstantBuffer->Release();
+	perLightDataConstantBuffer->Release();
 
 	for (unsigned int i = 0; i < vertexShaders.size(); i++)
 	{
@@ -283,7 +328,7 @@ void Renderer::loadAllShaders()
 	{ 
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 } 
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 } 
 	};
 
 	for (unsigned int i = 0; i < vertexShaders.size(); i++)
@@ -358,6 +403,32 @@ void Renderer::loadAllShaders()
 	}
 }
 
+void Renderer::loadAllMaterials()
+{
+	for (unsigned int i = 0; i < materials.size(); i++)
+	{
+		vector<int> textureCodes;
+
+		for (unsigned int j = 0; j < materials[i].getTextureNames().size(); j++)
+		{
+			for (unsigned int k = 0; k < textures.size(); k++)
+			{
+				if (materials[i].getTextureNames()[j] == textures[k].getName())
+				{
+					textureCodes.push_back(k);
+				}
+			}
+		}
+
+		materials[i].setTextureCodes(textureCodes);
+	}
+}
+
+ID3D11Device  **Renderer::getDevice()
+{
+	return &dev;
+}
+
 vector<VertexShader> Renderer::getVertexShaders()
 {
 	return vertexShaders;
@@ -420,6 +491,21 @@ void Renderer::add(Camera *toAdd)
 	ToAdd.setRenderDims(outputWidth, outputHeight);
 	ToAdd.initialize();
 	cameras.push_back(ToAdd);
+}
+
+void Renderer::add(Light toAdd)
+{
+	lights.push_back(toAdd);
+}
+
+void Renderer::add(Texture toAdd)
+{
+	textures.push_back(toAdd);
+}
+
+void Renderer::add(Material toAdd)
+{
+	materials.push_back(toAdd);
 }
 
 Renderer::Renderer()

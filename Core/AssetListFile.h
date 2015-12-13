@@ -13,6 +13,12 @@ struct AssetList
 	vector<string> vertexShaderPaths;
 	vector<string> pixelShaderNames;
 	vector<string> pixelShaderPaths;
+	vector<string> lightNames;
+	vector<string> lightPaths;
+	vector<string> textureNames;
+	vector<string> texturePaths;
+	vector<string> materialNames;
+	vector<string> materialPaths;
 };
 
 class AssetListFile : public File
@@ -25,10 +31,17 @@ public:
 	AssetList getAssetList();
 	vector<string> getModelNames();
 	vector<string> getModelPaths();
+	vector<string> getCameraNames();
 	vector<string> getVertexShaderNames();
 	vector<string> getVertexShaderPaths();
 	vector<string> getPixelShaderNames();
 	vector<string> getPixelShaderPaths();
+	vector<string> getLightNames();
+	vector<string> getLightPaths();
+	vector<string> getTextureNames();
+	vector<string> getTexturePaths();
+	vector<string> getMaterialNames();
+	vector<string> getMaterialPaths();
 	AssetListFile();
 	AssetListFile(string path);
 };

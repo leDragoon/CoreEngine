@@ -2,6 +2,8 @@
 #include<AssetListFile.h>
 #include<Renderer.h>
 #include<SceneFile.h>
+#include<LightFile.h>
+#include<Texture.h>
 
 class Scene
 {

@@ -28,3 +28,5 @@ public:
 	File();
 	File(string path);
 };
+
+string getFileExtension(string filePath);

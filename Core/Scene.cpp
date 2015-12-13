@@ -65,12 +65,35 @@ void Scene::load()
 		renderer->add(&camera);
 	}
 
+	for (unsigned int i = 0; i < sceneAssetList.lightNames.size(); i++)
+	{
+		LightFile lData;
+		Light light = lData.loadLightFile(sceneAssetList.lightPaths[i]);
+		renderer->add(light);
+	}
+
+	for (unsigned int i = 0; i < sceneAssetList.textureNames.size(); i++)
+	{
+		Texture tex;
+		tex.loadFromFile(sceneAssetList.texturePaths[i], renderer->getDevice());
+		tex.setName(sceneAssetList.textureNames[i]);
+		renderer->add(tex);
+	}
+
+	for (unsigned int i = 0; i < sceneAssetList.materialNames.size(); i++)
+	{
+		Material mat;
+		mat.loadMaterial(sceneAssetList.materialPaths[i], renderer->getDevice());
+		renderer->add(mat);
+	}
+
 	for (unsigned int i = 0; i < sceneModels.size(); i++)
 	{
 		renderer->add(&sceneModels[i]);
 	}
 
 	renderer->loadAllShaders();
+	renderer->loadAllMaterials();
 	renderer->loadAllModels();
 }
 

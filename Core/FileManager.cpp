@@ -65,12 +65,12 @@ string File::getFileExtension()
 {
 	string fileExtension = "Error";
 
-	for (int i = 0; i < filePath.size(); i++)
+	for (unsigned int i = 0; i < filePath.size(); i++)
 	{
 		if (filePath[i] == '.')
 		{
 			fileExtension = "";
-			for (int j = i + 1; j < filePath.size(); j++)
+			for (unsigned int j = i + 1; j < filePath.size(); j++)
 			{
 				fileExtension.push_back(filePath[j]);
 			}
@@ -78,7 +78,32 @@ string File::getFileExtension()
 		}
 	}
 
-	for (int i = 0; i < fileExtension.size(); i++)
+	for (unsigned int i = 0; i < fileExtension.size(); i++)
+	{
+		fileExtension[i] = toupper(fileExtension[i]);
+	}
+
+	return fileExtension;
+}
+
+string getFileExtension(string filePath)
+{
+	string fileExtension = "Error";
+
+	for (unsigned int i = 0; i < filePath.size(); i++)
+	{
+		if (filePath[i] == '.')
+		{
+			fileExtension = "";
+			for (unsigned int j = i + 1; j < filePath.size(); j++)
+			{
+				fileExtension.push_back(filePath[j]);
+			}
+			break;
+		}
+	}
+
+	for (unsigned int i = 0; i < fileExtension.size(); i++)
 	{
 		fileExtension[i] = toupper(fileExtension[i]);
 	}

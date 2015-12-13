@@ -19,6 +19,7 @@ protected:
 	DirectX::XMMATRIX worldMatrix;
 	int vertexShaderCode;
 	int pixelShaderCode;
+	int materialCode = 0;
 	bool needsToBeInitialized = true;
 	void setDrawableType(int toSet);
 	string vertexShaderName;
@@ -31,6 +32,8 @@ public:
 	bool getIsInitialized();
 	void setVertexShader(string shaderName);
 	void setVertexShader(int shaderCode);
+	void setMaterialCode(int toSet);
+	int getMaterialCode();
 	int getVertexShaderCode();
 	string getVertexShaderName();
 	void setPixelShader(string shaderName);
