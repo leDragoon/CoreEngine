@@ -1,8 +1,11 @@
-
 vs mainVertexShader Data//Shaders//MainVertexShader.hlsl
+vs quadVertexShader Data//Shaders//quad.hlsl
 ps mainPixelShader Data//Shaders//MainPixelShader.hlsl
+ps skyPixelShader Data//Shaders//skyPixelShader.hlsl
+ps postFXPixelShader Data//Shaders//postFX.hlsl
 cm mainCamera
-m sphereModel Data//Models//sphere.obj
 l mainLight Data//Lights//mainLight.lgt
-t defTexture Data//Textures//defTexture.png
+t defTexture Data//Textures//blank.png
+t skyTexture Data//Textures//sky.dds
+m sphereModel Data//Models//sphere.obj
 mt defaultMaterial Data//Materials//defMaterial.mat

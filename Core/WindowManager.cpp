@@ -133,8 +133,6 @@ CoreWindow::CoreWindow(SettingsCategory windowSettings)
 	windowWidth = windowSettings.getInt("windowWidth");
 	windowHeight = windowSettings.getInt("windowHeight");
 	windowVisible = true;
-	windowPositionX = CW_USEDEFAULT;
-	windowPositionY = CW_USEDEFAULT;
 	windowIsWindowed = windowSettings.getBool("windowWindowed");
 	open();
 }

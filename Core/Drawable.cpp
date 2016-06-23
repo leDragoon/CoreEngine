@@ -2,15 +2,21 @@
 
 void Drawable::calculateWorldMatrix()
 {
-	worldMatrix = DirectX::XMMatrixIdentity();
+	DirectX::XMStoreFloat4x4(&worldMatrix, DirectX::XMMatrixIdentity());
 	DirectX::XMMATRIX posMat;
 	DirectX::XMMATRIX rotMat;
 	DirectX::XMMATRIX sclMat;
 
 	posMat = DirectX::XMMatrixTranslation(worldPosition.x, worldPosition.y, worldPosition.z);
-	rotMat = DirectX::XMMatrixRotationX(DirectX::XMConvertToRadians(worldRotation.x)) * DirectX::XMMatrixRotationY(DirectX::XMConvertToDegrees(worldRotation.y)) * DirectX::XMMatrixRotationZ(DirectX::XMConvertToDegrees(worldRotation.z));
+	rotMat = DirectX::XMMatrixRotationX(XMConvertToRadians(worldRotation.x)) * DirectX::XMMatrixRotationY(XMConvertToRadians(worldRotation.y)) * DirectX::XMMatrixRotationZ(XMConvertToRadians(worldRotation.z));
 	sclMat = DirectX::XMMatrixScaling(worldScale.x, worldScale.y, worldScale.z);
-	worldMatrix = sclMat * rotMat * posMat;
+	DirectX::XMStoreFloat4x4(&worldMatrix, sclMat * rotMat * posMat);
+}
+
+void Drawable::calculateHeadingVector()
+{
+	worldHeading.x = cosf(DirectX::XMConvertToRadians(worldRotation.y));
+	worldHeading.z = sinf(DirectX::XMConvertToRadians(worldRotation.y));
 }
 
 int Drawable::getDrawableType()
@@ -42,6 +48,7 @@ void Drawable::setVertexShader(string shaderName)
 void Drawable::setVertexShader(int shaderCode)
 {
 	vertexShaderCode = shaderCode;
+	shaderCodeShouldBeSet = false;
 }
 
 void Drawable::setMaterialCode(int toSet)
@@ -73,6 +80,7 @@ void Drawable::setPixelShader(string shaderName)
 void Drawable::setPixelShader(int shaderCode)
 {
 	pixelShaderCode = shaderCode;
+	shaderCodeShouldBeSet = false;
 }
 
 int Drawable::getPixelShaderCode()
@@ -93,7 +101,7 @@ void Drawable::setPosition(DirectX::XMFLOAT3 position)
 
 void Drawable::setRotation(DirectX::XMFLOAT3 rotation)
 {
-	worldRotation = rotation;
+	worldRotation = DirectX::XMFLOAT3(rotation.x, rotation.y, rotation.z);
 	calculateWorldMatrix();
 }
 
@@ -108,6 +116,14 @@ void Drawable::translate(DirectX::XMFLOAT3 toTranslate)
 	worldPosition.x += toTranslate.x;
 	worldPosition.y += toTranslate.y;
 	worldPosition.z += toTranslate.z;
+	calculateWorldMatrix();
+}
+
+void Drawable::localTranslate(DirectX::XMFLOAT3 toTranslate)
+{
+	calculateHeadingVector();
+	worldPosition.x += worldHeading.x * toTranslate.z * 0.5f;
+	worldPosition.z += worldHeading.z * toTranslate.z * 0.5f;
 	calculateWorldMatrix();
 }
 
@@ -147,7 +163,22 @@ int Drawable::getIdentifier()
 	return identifier;
 }
 
-DirectX::XMMATRIX Drawable::getWorldMatrix()
+void Drawable::setScripts(vector<string> toSet)
+{
+	scripts = toSet;
+}
+
+void Drawable::addScript(string toAdd)
+{
+	scripts.push_back(toAdd);
+}
+
+vector<string> Drawable::getScripts()
+{
+	return scripts;
+}
+
+DirectX::XMFLOAT4X4 Drawable::getWorldMatrix()
 {
 	return worldMatrix;
 }

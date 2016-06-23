@@ -9,36 +9,56 @@
 #include<Camera.h>
 #include<Light.h>
 #include<Material.h>
+#include<DirectXTex.h>
+#include<string>
+#include<Input.h>
+#include<ctime>
+#include<UserInterface.h>
 
 using namespace DirectX;
 
 class Renderer
 {
 private:
-	HWND hWnd;
-	ID3D11Device *dev;
-	ID3D11DeviceContext *devCon;
-	IDXGISwapChain *swap;
-	ID3D11RenderTargetView *backBuffer;
-	ID3D11DepthStencilView *depthStencilView;
-	ID3D11Texture2D *depthStencilBuffer;
-	ID3D11Buffer *perObjectVertexDataConstantBuffer;
-	ID3D11Buffer *perObjectPixelDataConstantBuffer;
-	ID3D11Buffer *perLightDataConstantBuffer;
-	int outputWidth;
-	int outputHeight;
-	int refreshRate;
-	int hardwareAntiAliasingCount;
-	bool windowedMode;
-	bool canBeInitialized;
+	HWND hWnd = NULL;
+	ID3D11Device *dev = NULL;
+	ID3D11DeviceContext *devCon = NULL;
+	IDXGISwapChain *swap = NULL;
+	ID3D11RenderTargetView *backBuffer = NULL;
+	ID3D11RenderTargetView *renderBuffer = NULL;
+	ID3D11DepthStencilView *depthStencilView = NULL;
+	ID3D11Buffer *perObjectVertexDataConstantBuffer = NULL;
+	ID3D11Buffer *perObjectPixelDataConstantBuffer = NULL;
+	ID3D11Buffer *perLightDataConstantBuffer = NULL;
+	ID3D11DepthStencilState *depthDisabledState = NULL;
+	ID3D11DepthStencilState *normalDepthState = NULL;
+	ID3D11Texture2D *presentTexture = NULL;
+	ID3D11Texture2D *backBufferTex = NULL;
+	ID3D11ShaderResourceView *renderTexture = NULL;
+	float deltaTime = 0.0f;
+	float timeOld = 0.0f;
+	int outputWidth = 1;
+	int outputHeight = 1;
+	int refreshRate = 60;
+	int hardwareAntiAliasingCount = 0;
+	int backgroundTexture = 0;
+	BOOL fullScreenMode = false;
+	bool canBeInitialized = false;
 	vector<Model*> models;
 	void resize();
 	vector<VertexShader> vertexShaders;
 	vector<PixelShader> pixelShaders;
-	int currentVertexShader;
-	int currentPixelShader;
-	vector<Camera> cameras;
+	int currentVertexShader = -1;
+	int currentPixelShader = -1;
+	vector<Camera*> cameras;
 	vector<Light> lights;
+	vector<VertexShader> getVertexShaders();
+	vector<PixelShader> getPixelShaders();
+	vector<Texture> textures;
+	vector<Material> materials;
+	vector<Model*> getModels();
+	GuiManager guiManager;
+	GuiElement mouseCursor;
 
 	struct perObjectVertexData
 	{
@@ -50,6 +70,8 @@ private:
 	struct perObjectPixelData
 	{
 		XMMATRIX view;
+		XMVECTOR cameraPosition;
+		XMVECTOR viewDirection;
 	}perObjectPixelDataToBeSent;
 
 	struct perLightData
@@ -60,7 +82,9 @@ private:
 		int lightType;
 	}perLightDataToBeSent;
 
+	wstring stringtowstring(const string &str);
 public:
+	
 	void init();
 	void render();
 	void setWidth(int width);
@@ -73,20 +97,24 @@ public:
 	void setHardwareAntiAliasingCount(int count);
 	int getHardwareAntiAliasingCount();
 	void setWindowedMode(bool windowedmode);
-	bool getWindowedMode();
+	BOOL getWindowedMode();
+	void setBackGroundCubeMap(string textureName);
+	string getBackGroundCubeMap();
 	void readyToInitialize();
 	void close();
 	void loadAllModels();
 	void loadAllShaders();
 	void loadAllMaterials();
+	void captureLightProbe(int resolution, XMFLOAT3 position, string pathToSave);
+	void convolveLightProbe(string path);
 	ID3D11Device **getDevice();
-
-	vector<VertexShader> getVertexShaders();
-	vector<PixelShader> getPixelShaders();
-	vector<Texture> textures;
-	vector<Material> materials;
-	vector<Model*> getModels();
+	Model *quadModel;
 	void setVertexShaders(vector<VertexShader> toSet);
+	float getDeltaTime();
+	Model* getObject(string name);
+	void setQuadModel(Model* toSet);
+	GuiManager *getGuiManager();
+	void updateGuiTextures();
 
 	void add(Model* toAdd);
 	void add(VertexShader toAdd);

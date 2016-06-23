@@ -2,27 +2,35 @@
 #include<DirectXMath.h>
 #include<string>
 
+#define PI 3.14159265359f
+
 using std::string;
 using namespace DirectX;
+using namespace std;
 
 class Camera
 {
 private:
 	string name;
-	XMVECTOR position;
-	XMVECTOR target;
-	XMVECTOR forward;
-	XMVECTOR right;
-	XMVECTOR up;
-	XMMATRIX view;
-	XMMATRIX projection;
-	float pitch;
-	float yaw;
-	float roll;
-	int renderWidth;
-	int renderHeight;
-	float fieldOfView;
-	bool orthoPerspective;
+	XMFLOAT3 position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	XMFLOAT3 target = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	XMFLOAT3 forward = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	XMFLOAT3 right = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	XMFLOAT3 up = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	XMFLOAT3 rotateAroundPoint = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	XMFLOAT4X4 view;
+	XMFLOAT4X4 projection;
+	float rotationRadius = 15.0f;
+	float theta = (3.0f * PI) / 2.0f;
+	float phi = PI / 2;
+	float pitch = 0.0f;
+	float yaw = 0.0f;
+	float roll = 0.0f;
+	int renderWidth = 1;
+	int renderHeight = 1;
+	float fieldOfView = 45.0f;
+	bool orthoPerspective = false;
+	bool rotationMode = false;
 	void update();
 	void updateProjection();
 public:
@@ -38,15 +46,21 @@ public:
 	void setRotation(XMFLOAT3 toSet);
 	void rotate(XMFLOAT3 toRotate);
 	void setFieldOfView(float toSet);
+	void setRotationRadius(float toSet);
+	float getRotationRadius();
+	void setRotateAroundPoint(XMFLOAT3 toSet);
 	float getFieldOfView();
 	void setRenderDims(int width, int height);
 	void setName(string toSet);
+	XMFLOAT3 getViewDirection();
 	string getName();
 	XMFLOAT2 getRenderDims();
-	XMMATRIX getViewMatrix();
-	XMMATRIX getProjectionMatrix();
+	XMFLOAT4X4 getViewMatrix();
+	XMFLOAT4X4 getProjectionMatrix();
 	XMFLOAT3 getPosition();
 	XMFLOAT3 getRotation();
+	XMFLOAT3 getRotateAroundPoint();
+	XMFLOAT3 getForward();
 
 	Camera();
 	Camera(XMFLOAT3 pos);

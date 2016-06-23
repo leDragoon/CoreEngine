@@ -15,15 +15,14 @@ typedef vector2i windowDims;
 class CoreWindow
 {
 private:
-	int windowWidth;
-	int windowHeight;
-	int windowPositionX;
-	int windowPositionY;
-	bool windowVisible;
-	bool windowIsWindowed;
+	int windowWidth = 1;
+	int windowHeight = 1;
+	int windowPositionX = CW_USEDEFAULT;
+	int windowPositionY = CW_USEDEFAULT;
+	bool windowVisible = false;
+	bool windowIsWindowed = false;
 	string windowTitle;
-	HWND hWnd;
-	WNDCLASSEX wClass;
+	HWND hWnd = NULL;
 	void open();
 public:
 	void setWindowSize(int width, int height);

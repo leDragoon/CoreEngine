@@ -25,3 +25,15 @@ vector<string> separateIntoSections(string in)
 
 	return toReturn;
 }
+
+bool startsWith(string in, string toCheck)
+{
+	vector<string> sections = separateIntoSections(in);
+
+	if (sections[0] == toCheck)
+	{
+		return true;
+	}
+
+	return false;
+}

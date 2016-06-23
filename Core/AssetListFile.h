@@ -19,6 +19,12 @@ struct AssetList
 	vector<string> texturePaths;
 	vector<string> materialNames;
 	vector<string> materialPaths;
+	vector<string> soundNames;
+	vector<string> soundPaths;
+	vector<string> scriptNames;
+	vector<string> scriptPaths;
+	vector<string> guiElementNames;
+	vector<string> guiElementPaths;
 };
 
 class AssetListFile : public File
@@ -42,6 +48,10 @@ public:
 	vector<string> getTexturePaths();
 	vector<string> getMaterialNames();
 	vector<string> getMaterialPaths();
+	vector<string> getSoundNames();
+	vector<string> getSoundPaths();
+	vector<string> getScriptNames();
+	vector<string> getScriptPaths();
 	AssetListFile();
 	AssetListFile(string path);
 };

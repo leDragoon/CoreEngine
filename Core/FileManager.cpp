@@ -8,6 +8,7 @@ void File::load()
 	if (!file.is_open())
 	{
 		MessageBox(NULL, ("Could not open file: " + filePath).c_str(), "File loading error", MB_ICONERROR | MB_OK);
+		SendMessage(NULL, WM_DESTROY, NULL, NULL);
 		exit(0);
 	}
 

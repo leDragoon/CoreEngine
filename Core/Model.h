@@ -3,9 +3,16 @@
 #include<vector>
 #include<Drawable.h>
 #include<ModelFile.h>
+#include<btBulletCollisionCommon.h>
 
 using std::vector;
 using std::string;
+
+struct AABB
+{
+	btVector3 min;
+	btVector3 max;
+};
 
 class Model : public Drawable
 {
@@ -13,10 +20,12 @@ private:
 	string filePath;
 	ID3D11Buffer *vertexBuffer;
 	ID3D11Buffer *indexBuffer;
-	int numberOfVertices;
-	int numberOfIndices;
+	int numberOfVertices = 1;
+	int numberOfIndices = 1;
 	vector<Vertex> vertices;
 	vector<DWORD> indices;
+	AABB collisionBox;
+	void generateCollisionBox();
 public:
 	void loadData(string modelFilePath);
 	void loadVertices(vector<Vertex> Vertices);

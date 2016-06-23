@@ -56,6 +56,27 @@ void AssetListFile::parse()
 				assets.materialNames.push_back(sections[1]);
 				assets.materialPaths.push_back(sections[2]);
 			}
+
+			else if (fileContents[i][0] == 's' && fileContents[i][1] == 'n')
+			{
+				vector<string> sections = separateIntoSections(fileContents[i]);
+				assets.soundNames.push_back(sections[1]);
+				assets.soundPaths.push_back(sections[2]);
+			}
+
+			else if (fileContents[i][0] == 's' && fileContents[i][1] == 'c')
+			{
+				vector<string> sections = separateIntoSections(fileContents[i]);
+				assets.scriptNames.push_back(sections[1]);
+				assets.scriptPaths.push_back(sections[2]);
+			}
+
+			else if (fileContents[i][0] == 'u' && fileContents[i][1] == 'i')
+			{
+				vector<string> sections = separateIntoSections(fileContents[i]);
+				assets.guiElementNames.push_back(sections[1]);
+				assets.guiElementPaths.push_back(sections[2]);
+			}
 		}
 	}
 }
@@ -135,6 +156,26 @@ vector<string> AssetListFile::getMaterialNames()
 vector<string> AssetListFile::getMaterialPaths()
 {
 	return assets.materialPaths;
+}
+
+vector<string> AssetListFile::getSoundNames()
+{
+	return assets.soundNames;
+}
+
+vector<string> AssetListFile::getSoundPaths()
+{
+	return assets.soundPaths;
+}
+
+vector<string> AssetListFile::getScriptNames()
+{
+	return assets.scriptNames;
+}
+
+vector<string> AssetListFile::getScriptPaths()
+{
+	return assets.scriptPaths;
 }
 
 AssetListFile::AssetListFile()

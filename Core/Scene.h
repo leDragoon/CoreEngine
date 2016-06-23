@@ -1,20 +1,30 @@
 #pragma once
+#include<Audio.h>
 #include<AssetListFile.h>
 #include<Renderer.h>
+#include<Physics.h>
 #include<SceneFile.h>
 #include<LightFile.h>
 #include<Texture.h>
+#include<Script.h>
+#include<UserInterfaceFile.h>
 
 class Scene
 {
 private:
 	Renderer *renderer;
-	int sceneType;
+	AudioHandler *audioHandler;
+	PhysicsHandler *physicsHandler;
+	ScriptHandler *scriptHandler;
+	int sceneType = 0;
 	string sceneName;
 	string filePath;
 	AssetList *globalAssetList;
 	AssetList sceneAssetList;
+	Model quadModel;
 	vector<Model> sceneModels;
+	vector<Camera> sceneCameras;
+	Camera sceneCamera;
 	bool sceneAndGlobalAssetListCombined = false;
 public:
 	void load();
@@ -28,8 +38,15 @@ public:
 	void setGlobalAssetList(AssetList *globalList);
 	void setAssetList(AssetList toSet);
 	void setRenderer(Renderer *toSet);
+	void setAudioHandler(AudioHandler *toSet);
+	void setPhysicsHandler(PhysicsHandler *toSet);
+	void setScriptHandler(ScriptHandler *toSet);
 	Renderer *getRenderer();
+	AudioHandler *getAudioHandler();
+	PhysicsHandler *getPhysicsHandler();
+	ScriptHandler *getScriptHandler();
 	AssetList getAssetList();
+	Camera *getCamera();
 	void setFilePath(string filePath);
 	string getFilePath();
 	void getModel(string modelName);

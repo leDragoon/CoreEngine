@@ -20,9 +20,6 @@
     <ClCompile Include="Vector2i.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="FileManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -78,6 +75,30 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MaterialFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Input.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Script.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Audio.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UserInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UserInterfaceFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Game.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -136,9 +157,6 @@
     <ClInclude Include="Util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -163,6 +181,39 @@
     <ClInclude Include="MaterialFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Input.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Script.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Audio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ConvolveLightProbe.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UserInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UserInterfaceFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Game.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="settings.ini" />
@@ -172,14 +223,24 @@
     <None Include="Data\Lights\mainLight.lgt" />
     <None Include="texconv.exe" />
     <None Include="Data\Materials\defMaterial.mat" />
+    <None Include="Data\Models\sphere.ctm" />
+    <None Include="Data\Models\cube.ctm" />
+    <None Include="texassemble.exe" />
+    <None Include="libyse32.dll" />
+    <None Include="cmft.exe" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Icon.ico" />
-    <Image Include="Data\Textures\defTexture.png" />
+    <Image Include="Data\Textures\sky.dds" />
+    <Image Include="Data\Textures\defTexture.DDS" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Data\Shaders\MainPixelShader.hlsl" />
     <FxCompile Include="Data\Shaders\MainVertexShader.hlsl" />
+    <FxCompile Include="Data\Shaders\skyPixelShader.hlsl" />
+    <FxCompile Include="Data\Shaders\ProcessLightProbe.hlsl" />
+    <FxCompile Include="Data\Shaders\quad.hlsl" />
+    <FxCompile Include="Data\Shaders\postFX.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Data\Scenes\root.scn" />

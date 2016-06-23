@@ -1,27 +1,38 @@
-#include<iostream>
-#include<WindowManager.h>
-#include<Renderer.h>
-#include<SettingsFile.h>
-#include<Scene.h>
-
+#include<Game.h>
 
 using namespace std;
 
 bool running = true;
-Renderer renderer;
-CoreWindow window;
+Renderer renderer = Renderer();
+AudioHandler soundHandler = AudioHandler();
+CoreWindow window = CoreWindow();
+ScriptHandler scriptHandler = ScriptHandler();
+InputHandler inputHandler = InputHandler();
+PhysicsHandler physicsHandler = PhysicsHandler();
+SettingsFile programSettings = SettingsFile("settings.ini");
+Scene rootScene;
 
+void initSettings();
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)
 	{
 	case WM_DESTROY:
+		rootScene.unload();
+		renderer.close();
+		soundHandler.close();
 		running = false;
 		break;
 	case WM_SIZE:
 		renderer.resize(LOWORD(lParam), HIWORD(lParam));
 		break;
 	default:
+		MSG m;
+		m.hwnd = hWnd;
+		m.lParam = lParam;
+		m.wParam = wParam;
+		m.message = msg;
+
 		return DefWindowProc(hWnd, msg, wParam, lParam);
 		break;
 	}
@@ -31,10 +42,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	SettingsFile programSettings = SettingsFile("settings.ini");
-	window = CoreWindow(programSettings.getCategory("WINDOW"));
-	
+	initSettings();
+	ShowCursor(FALSE);
+
 	WNDCLASSEX wClass;
+	ZeroMemory(&wClass, sizeof(WNDCLASSEX));
 	
 	wClass.cbClsExtra = NULL;
 	wClass.cbSize = sizeof(WNDCLASSEX);
@@ -66,17 +78,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	window.setHandle(hWnd);
 	renderer = Renderer(window);
 	renderer.init();
-	Scene rootScene;
+
 	rootScene.setRenderer(&renderer);
+	rootScene.setAudioHandler(&soundHandler);
 	rootScene.load("Data//Scenes//root.scn", AssetListFile("Data//globalAssetList.alst").getAssetList());
+	rootScene.getCamera()->setFieldOfView(programSettings.getFloat("RENDER", "fieldOfView"));
 
 	ShowWindow(hWnd, true);
 	UpdateWindow(hWnd);
+
+	onGameStart(&renderer, &soundHandler, &inputHandler, &physicsHandler, &scriptHandler, &rootScene);
 
 	MSG msg;
 	
 	while (running)
 	{
+		MSG m;
+		ZeroMemory(&m, sizeof(MSG));
+	
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
@@ -84,11 +103,30 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 
 		renderer.render();
+		soundHandler.update();
+		scriptHandler.update();
+
+		for (unsigned int i = 0; i < scriptHandler.getScriptChanges().names.size(); i++)
+		{
+			vector<string> sections = separateIntoSections(scriptHandler.getScriptChanges().names[i]);
+			vector<string> changeSections = separateIntoSections(scriptHandler.getScriptChanges().changes[i]);;
+
+			if (sections[0] == "m")
+			{
+				renderer.getObject(sections[1])->translate(XMFLOAT3(stof(changeSections[0]) * renderer.getDeltaTime(), stof(changeSections[1]) * renderer.getDeltaTime(), stof(changeSections[2]) * renderer.getDeltaTime()));
+			}
+		}
+
+		onTick(&renderer, &soundHandler, &inputHandler, &physicsHandler, &scriptHandler, &rootScene);
 	}
 
-	rootScene.unload();
-	renderer.close();
+	onGameExit(&renderer, &soundHandler, &inputHandler, &physicsHandler, &scriptHandler, &rootScene);
 	DestroyWindow(hWnd);
 	hWnd = NULL;
 	return 0;
+}
+
+void initSettings()
+{
+	window = CoreWindow(programSettings.getCategory("WINDOW"));
 }

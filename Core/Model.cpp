@@ -1,5 +1,67 @@
 #include "Model.h"
 
+void Model::generateCollisionBox()
+{
+	float minX, maxX, minY, maxY, minZ, maxZ;
+	minX = 1.0f;
+	minY = 1.0f;
+	minZ = 1.0f;
+	maxX = 0.0f;
+	maxY = 0.0f;
+	maxZ = 0.0f;
+
+	for (unsigned int i = 0; i < vertices.size(); i++)
+	{
+		if (vertices[i].position.x < minX)
+		{
+			minX = vertices[i].position.x;
+		}
+	}
+
+	for (unsigned int i = 0; i < vertices.size(); i++)
+	{
+		if (vertices[i].position.y < minY)
+		{
+			minY = vertices[i].position.y;
+		}
+	}
+
+	for (unsigned int i = 0; i < vertices.size(); i++)
+	{
+		if (vertices[i].position.z < minZ)
+		{
+			minZ = vertices[i].position.z;
+		}
+	}
+
+	for (unsigned int i = 0; i < vertices.size(); i++)
+	{
+		if (vertices[i].position.x > maxX)
+		{
+			maxX = vertices[i].position.x;
+		}
+	}
+
+	for (unsigned int i = 0; i < vertices.size(); i++)
+	{
+		if (vertices[i].position.y > maxY)
+		{
+			maxY = vertices[i].position.y;
+		}
+	}
+
+	for (unsigned int i = 0; i < vertices.size(); i++)
+	{
+		if (vertices[i].position.z > maxZ)
+		{
+			maxZ = vertices[i].position.z;
+		}
+	}
+
+	collisionBox.min = btVector3(minX, minY, minZ);
+	collisionBox.max = btVector3(maxX, maxY, maxZ);
+}
+
 void Model::loadData(string modelFilePath)
 {
 	filePath = modelFilePath;
@@ -10,6 +72,7 @@ void Model::loadData(string modelFilePath)
 	numberOfVertices = mData.vertices.size();
 	numberOfIndices = mData.indices.size();
 	setDrawableType(CORE_DRAWABLETYPE_MODEL);
+	generateCollisionBox();
 }
 
 void Model::loadVertices(vector<Vertex> Vertices)
@@ -17,6 +80,7 @@ void Model::loadVertices(vector<Vertex> Vertices)
 	vertices = Vertices;
 	numberOfVertices = Vertices.size();
 	setDrawableType(CORE_DRAWABLETYPE_MODEL);
+	generateCollisionBox();
 }
 
 void Model::loadIndices(vector<DWORD> Indices)
@@ -26,11 +90,12 @@ void Model::loadIndices(vector<DWORD> Indices)
 	setDrawableType(CORE_DRAWABLETYPE_MODEL);
 }
 
-void Model::loadVertices(ID3D11Buffer * VertexBuffer)
+void Model::loadVertices(ID3D11Buffer *VertexBuffer)
 {
 	vertexBuffer = VertexBuffer;
 	needsToBeInitialized = false;
 	setDrawableType(CORE_DRAWABLETYPE_MODEL);
+	generateCollisionBox();
 }
 
 void Model::loadVertices(vector<DirectX::XMFLOAT3> vertexPositions, vector<DirectX::XMFLOAT3> vertexNormals, vector<DirectX::XMFLOAT2> vertexUVs)
@@ -46,6 +111,7 @@ void Model::loadVertices(vector<DirectX::XMFLOAT3> vertexPositions, vector<Direc
 
 	numberOfVertices = vertexPositions.size();
 	setDrawableType(CORE_DRAWABLETYPE_MODEL);
+	generateCollisionBox();
 }
 
 void Model::setVertexBuffer(ID3D11Buffer * VertexBuffer)
