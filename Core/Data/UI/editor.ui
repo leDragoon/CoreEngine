@@ -1,0 +1,31 @@
+w
+nw rootWindow
+stw 32 windowCorner windowEdge
+pw 0.0 1.0
+sw 1.0 1.0
+he
+n toolsElement
+t windowAccent
+p 0.0 -0.80
+s 0.65 0.16
+e
+he
+n assetsElement
+t windowAccent1
+p -0.815 -0.06
+s 0.165 0.9
+e
+he
+n propertiesElement
+t windowAccent1
+p 0.815 -0.06
+s 0.165 0.9
+e
+te
+n toolsText
+p 0.5 0.0
+s 0.5 0.5
+t Tools
+f editorFont
+e
+e

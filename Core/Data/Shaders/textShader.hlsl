@@ -15,11 +15,14 @@ struct VS_OUT
 	float4 bitangent : BITANGENT;
 	float4 normal : NORMAL;
 	float2 texcoord : TEXCOORD;
+	float2 texcoord2 : TEXCOORD2;
 };
 
 float4 main(VS_OUT input) : SV_TARGET
 {
-	float2 tCoord = input.texcoord;
+	uint tWidth, tHeight;
+	inputTexture.GetDimensions(tWidth, tHeight);
+	float2 tCoord = input.texcoord2;
 	float4 colour = inputTexture.Sample(texSample, tCoord);
-	return pow(abs(colour), 2.2f);
+	return colour;
 }

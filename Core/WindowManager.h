@@ -5,6 +5,7 @@
 #include<SystemInfo.h>
 #include<vector>
 #include<Windows.h>
+#include<windowsx.h>
 #include<SettingsFile.h>
 
 using std::string;

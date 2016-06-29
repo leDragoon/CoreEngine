@@ -3,9 +3,20 @@ vs quadVertexShader Data//Shaders//quad.hlsl
 ps mainPixelShader Data//Shaders//MainPixelShader.hlsl
 ps skyPixelShader Data//Shaders//skyPixelShader.hlsl
 ps postFXPixelShader Data//Shaders//postFX.hlsl
+ps textShader Data//Shaders//textShader.hlsl
 cm mainCamera
 l mainLight Data//Lights//mainLight.lgt
 t defTexture Data//Textures//blank.png
 t skyTexture Data//Textures//sky.dds
+t windowEdge Data//Textures//windowEdge.png
+t windowCorner Data//Textures//windowCorner.png
+t windowAccent Data//Textures//windowAccent.png
+t windowAccent1 Data//Textures//windowAccent1.png
+t windowAccent2 Data//Textures//windowAccent2.png
+t editorFont1 Data//UI//Fonts//editorFont_0.png
+t editorFont2 Data//UI//Fonts//editorFont_1.png
+t editorFont3 Data//UI//Fonts//editorFont_2.png
 m sphereModel Data//Models//sphere.obj
 mt defaultMaterial Data//Materials//defMaterial.mat
+fn editorFont Data//UI//Fonts//editorFont.fnt editorFont1 editorFont2 editorFont3
+ui editorUI Data//UI//editor.ui

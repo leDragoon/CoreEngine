@@ -101,6 +101,12 @@
     <ClCompile Include="Game.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Editor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fontFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="WindowManager.h">
@@ -214,6 +220,12 @@
     <ClInclude Include="Systems.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Editor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fontFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="settings.ini" />
@@ -228,11 +240,17 @@
     <None Include="texassemble.exe" />
     <None Include="libyse32.dll" />
     <None Include="cmft.exe" />
+    <None Include="Data\UI\editor.ui" />
+    <None Include="Data\UI\game.ui" />
+    <None Include="Data\UI\Fonts\editorFont.fnt" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Icon.ico" />
     <Image Include="Data\Textures\sky.dds" />
     <Image Include="Data\Textures\defTexture.DDS" />
+    <Image Include="Data\UI\Fonts\editorFont_0.DDS" />
+    <Image Include="Data\UI\Fonts\editorFont_1.DDS" />
+    <Image Include="Data\UI\Fonts\editorFont_2.DDS" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Data\Shaders\MainPixelShader.hlsl" />
@@ -241,6 +259,7 @@
     <FxCompile Include="Data\Shaders\ProcessLightProbe.hlsl" />
     <FxCompile Include="Data\Shaders\quad.hlsl" />
     <FxCompile Include="Data\Shaders\postFX.hlsl" />
+    <FxCompile Include="Data\Shaders\textShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Data\Scenes\root.scn" />

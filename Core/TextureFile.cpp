@@ -36,12 +36,12 @@ ID3D11ShaderResourceView *TextureFile::loadTexture(string path, ID3D11Device **d
 
 			else if (textureType == CORE_TEXTURETYPE_2D_COLOR)
 			{
-				system(("texconv.exe -f BC1_UNORM_SRGB -ft dds " + path + " & pause").c_str());
+				system(("texconv.exe -f BC1_UNORM_SRGB -ft dds " + path).c_str());
 			}
 
 			else if (textureType == CORE_TEXTURETYPE_2D_NORMAL)
 			{
-				system(("texconv.exe -f BC1_UNORM_SRGB -ft dds " + path + " & pause").c_str());
+				system(("texconv.exe -f BC1_UNORM_SRGB -ft dds " + path).c_str());
 			}
 
 			else if (textureType == CORE_TEXTURETYPE_CUBE)

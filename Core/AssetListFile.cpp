@@ -74,8 +74,22 @@ void AssetListFile::parse()
 			else if (fileContents[i][0] == 'u' && fileContents[i][1] == 'i')
 			{
 				vector<string> sections = separateIntoSections(fileContents[i]);
-				assets.guiElementNames.push_back(sections[1]);
-				assets.guiElementPaths.push_back(sections[2]);
+				assets.guiLayoutNames.push_back(sections[1]);
+				assets.guiLayoutPaths.push_back(sections[2]);
+			}
+
+			else if (fileContents[i][0] == 'f' && fileContents[i][1] == 'n')
+			{
+				vector<string> sections = separateIntoSections(fileContents[i]);
+				assets.fontNames.push_back(sections[1]);
+				assets.fontFiles.push_back(sections[2]);
+
+				vector<string> textures;
+				for (int j = 3; j < sections.size(); j++)
+				{
+					textures.push_back(sections[j]);
+				}
+				assets.fontTextures.push_back(textures);
 			}
 		}
 	}
@@ -176,6 +190,31 @@ vector<string> AssetListFile::getScriptNames()
 vector<string> AssetListFile::getScriptPaths()
 {
 	return assets.scriptPaths;
+}
+
+vector<string> AssetListFile::getGuiLayoutNames()
+{
+	return assets.guiLayoutNames;
+}
+
+vector<string> AssetListFile::getGuiLayoutPaths()
+{
+	return assets.guiLayoutPaths;
+}
+
+vector<string> AssetListFile::getFontNames()
+{
+	return assets.fontNames;
+}
+
+vector<string> AssetListFile::getFontFiles()
+{
+	return assets.fontFiles;
+}
+
+vector<vector<string>> AssetListFile::getFontTextures()
+{
+	return assets.fontTextures;
 }
 
 AssetListFile::AssetListFile()

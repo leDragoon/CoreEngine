@@ -23,8 +23,11 @@ struct AssetList
 	vector<string> soundPaths;
 	vector<string> scriptNames;
 	vector<string> scriptPaths;
-	vector<string> guiElementNames;
-	vector<string> guiElementPaths;
+	vector<string> guiLayoutNames;
+	vector<string> guiLayoutPaths;
+	vector<string> fontNames;
+	vector<string> fontFiles;
+	vector<vector<string>> fontTextures;
 };
 
 class AssetListFile : public File
@@ -52,6 +55,11 @@ public:
 	vector<string> getSoundPaths();
 	vector<string> getScriptNames();
 	vector<string> getScriptPaths();
+	vector<string> getGuiLayoutNames();
+	vector<string> getGuiLayoutPaths();
+	vector<string> getFontNames();
+	vector<string> getFontFiles();
+	vector<vector<string>> getFontTextures();
 	AssetListFile();
 	AssetListFile(string path);
 };

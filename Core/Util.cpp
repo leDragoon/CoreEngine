@@ -7,7 +7,7 @@ vector<string> separateIntoSections(string in)
 
 	for (unsigned int i = 0; i < in.size(); i++)
 	{
-		if (in[i] == ' ')
+		if (in[i] == ' ' && in[i - 1] != ' ')
 		{
 			onSection++;
 		}
@@ -23,7 +23,22 @@ vector<string> separateIntoSections(string in)
 		}
 	}
 
-	return toReturn;
+	vector<string> returnable;
+
+	for (unsigned int i = 0; i < toReturn.size(); i++)
+	{
+		string toPush;
+		for (unsigned int j = 0; j < toReturn[i].size(); j++)
+		{
+			if (toReturn[i][j] != ' ')
+			{
+				toPush.push_back(toReturn[i][j]);
+			}
+		}
+		returnable.push_back(toPush);
+	}
+
+	return returnable;
 }
 
 bool startsWith(string in, string toCheck)

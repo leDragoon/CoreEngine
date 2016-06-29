@@ -25,5 +25,5 @@ SamplerState texSampleCUBE
 float4 main(VS_OUT input) : SV_TARGET
 {
 	float3 vDir = normalize(cameraPosition.xyz - input.pos.xyz);
-	return skyCubeMap.Sample(texSampleCUBE, vDir);
+	return pow(abs(skyCubeMap.Sample(texSampleCUBE, vDir)), 1.0 / 2.2f);
 }

@@ -15,7 +15,7 @@ private:
 	int mouseDeltaX;
 	int mouseDeltaY;
 public:
-	void handleMessage(MSG msg);
+	void handleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 	void ignoreNextMouseMove();
 	bool getKeyPressed(int toGet);
 	bool getMouseButtonPressed(int buttonToGet);

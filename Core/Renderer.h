@@ -30,20 +30,24 @@ private:
 	ID3D11Buffer *perObjectVertexDataConstantBuffer = NULL;
 	ID3D11Buffer *perObjectPixelDataConstantBuffer = NULL;
 	ID3D11Buffer *perLightDataConstantBuffer = NULL;
+	ID3D11Buffer *perTextDataConstantBuffer = NULL;
 	ID3D11DepthStencilState *depthDisabledState = NULL;
 	ID3D11DepthStencilState *normalDepthState = NULL;
 	ID3D11Texture2D *presentTexture = NULL;
 	ID3D11Texture2D *backBufferTex = NULL;
 	ID3D11ShaderResourceView *renderTexture = NULL;
-	float deltaTime = 0.0f;
-	float timeOld = 0.0f;
+	time_t deltaTime;
+	time_t timeOld;
 	int outputWidth = 1;
 	int outputHeight = 1;
 	int refreshRate = 60;
 	int hardwareAntiAliasingCount = 0;
 	int backgroundTexture = 0;
+	int postFXShader = 0;
+	int textShader = 0;
 	BOOL fullScreenMode = false;
 	bool canBeInitialized = false;
+	bool isInitialized = false;
 	vector<Model*> models;
 	void resize();
 	vector<VertexShader> vertexShaders;
@@ -59,13 +63,8 @@ private:
 	vector<Model*> getModels();
 	GuiManager guiManager;
 	GuiElement mouseCursor;
-
-	struct perObjectVertexData
-	{
-		XMMATRIX world;
-		XMMATRIX view;
-		XMMATRIX WorldViewProjection;	
-	}perObjectVertexDataToBeSent;
+	
+	perObjectVertexData perObjectVertexDataToBeSent;
 
 	struct perObjectPixelData
 	{
@@ -81,6 +80,11 @@ private:
 		XMVECTOR lightColor;
 		int lightType;
 	}perLightDataToBeSent;
+
+	struct textData
+	{
+		XMVECTOR positionScale;
+	}textDataToBeSent;
 
 	wstring stringtowstring(const string &str);
 public:
@@ -110,11 +114,14 @@ public:
 	ID3D11Device **getDevice();
 	Model *quadModel;
 	void setVertexShaders(vector<VertexShader> toSet);
-	float getDeltaTime();
+	time_t getDeltaTime();
 	Model* getObject(string name);
 	void setQuadModel(Model* toSet);
 	GuiManager *getGuiManager();
 	void updateGuiTextures();
+	bool getIsInitialized();
+	ID3D11ShaderResourceView *getBackBuffer();
+	Texture* getTexture(string toGet);
 
 	void add(Model* toAdd);
 	void add(VertexShader toAdd);

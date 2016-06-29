@@ -10,10 +10,10 @@ class UserInterfaceFile : public File
 {
 private:
 	void parse();
-	GuiElement gElement;
+	GuiLayout gLayout;
 public:
-	GuiElement loadUserInterfaceElement(string filePath);
-	GuiElement getGuiElement();
+	GuiLayout loadUserInterfaceLayout(string filePath);
+	GuiLayout getGuiLayout();
 	UserInterfaceFile();
 	UserInterfaceFile(string filePath);
 };

@@ -28,6 +28,7 @@ public:
 	bool getIsLoaded();
 	void setUsage(int toSet);
 	int getUsage();
+	void setResource(ID3D11ShaderResourceView *toSet);
 	Texture();
 	Texture(string toLoadFilePath, ID3D11Device **dev);
 };

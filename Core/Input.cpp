@@ -1,17 +1,17 @@
 #include "Input.h"
 
-void InputHandler::handleMessage(MSG msg)
+void InputHandler::handleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	mouseDeltaX = 0;
 	mouseDeltaY = 0;
 
-	if (msg.message == WM_KEYDOWN)
+	if (msg == WM_KEYDOWN)
 	{
 		bool contains = false;
 
 		for (unsigned int i = 0; i < keysPressed.size(); i++)
 		{
-			if (keysPressed[i] == msg.wParam)
+			if (keysPressed[i] == wParam)
 			{
 				contains = true;
 			}
@@ -19,57 +19,57 @@ void InputHandler::handleMessage(MSG msg)
 
 		if (contains == false)
 		{
-			keysPressed.push_back(msg.wParam);
+			keysPressed.push_back(wParam);
 		}
 	}
 
-	else if (msg.message == WM_KEYUP)
+	else if (msg == WM_KEYUP)
 	{
 		for (unsigned int i = 0; i < keysPressed.size(); i++)
 		{
-			if (keysPressed[i] == msg.wParam)
+			if (keysPressed[i] == wParam)
 			{
 				keysPressed.erase(keysPressed.begin() + i, keysPressed.begin() + i + 1);
 			}
 		}
 	}
 
-	else if (msg.message == WM_LBUTTONDOWN)
+	else if (msg == WM_LBUTTONDOWN)
 	{
 		mouseButtonsPressed[0] = true;
 	}
 
-	else if (msg.message == WM_RBUTTONDOWN)
+	else if (msg == WM_RBUTTONDOWN)
 	{
 		mouseButtonsPressed[1] = true;
 	}
 
-	else if (msg.message == WM_MBUTTONDOWN)
+	else if (msg == WM_MBUTTONDOWN)
 	{
 		mouseButtonsPressed[2] = true;
 	}
 
-	else if (msg.message == WM_LBUTTONUP)
+	else if (msg == WM_LBUTTONUP)
 	{
 		mouseButtonsPressed[0] = false;
 	}
 
-	else if (msg.message == WM_RBUTTONUP)
+	else if (msg == WM_RBUTTONUP)
 	{
 		mouseButtonsPressed[1] = false;
 	}
 
-	else if (msg.message == WM_MBUTTONUP)
+	else if (msg == WM_MBUTTONUP)
 	{
 		mouseButtonsPressed[2] = false;
 	}
 
-	else if (msg.message == WM_MOUSEMOVE)
+	else if(msg == WM_MOUSEMOVE)
 	{
 		if (ignoreMouseMove == false)
 		{
-			mouseDeltaX = LOWORD(msg.lParam) - mousePosX;
-			mouseDeltaY = HIWORD(msg.lParam) - mousePosY;
+			mouseDeltaX = LOWORD(lParam) - mousePosX;
+			mouseDeltaY = HIWORD(lParam) - mousePosY;
 		}
 
 		else
@@ -77,8 +77,8 @@ void InputHandler::handleMessage(MSG msg)
 			ignoreMouseMove = false;
 		}
 
-		mousePosX = LOWORD(msg.lParam);
-		mousePosY = HIWORD(msg.lParam);
+		mousePosX = LOWORD(lParam);
+		mousePosY = HIWORD(lParam);
 	}
 }
 

@@ -1,0 +1,6 @@
+w
+nw rootWindow
+stw 32 windowCorner windowEdge
+pw 0.0 1.0
+sw 1.0 1.0
+e

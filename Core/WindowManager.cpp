@@ -66,7 +66,9 @@ windowDims CoreWindow::getWindowSize()
 
 windowDims CoreWindow::getWindowPosition()
 {
-	return windowDims(windowPositionX, windowPositionY);
+	RECT wRect;
+	GetWindowRect(hWnd, &wRect);
+	return windowDims(wRect.left, wRect.top);
 }
 
 void CoreWindow::setWindowVisible(bool visible)

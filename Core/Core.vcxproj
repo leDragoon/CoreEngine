@@ -189,7 +189,9 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="Drawable.cpp" />
+    <ClCompile Include="Editor.cpp" />
     <ClCompile Include="FileManager.cpp" />
+    <ClCompile Include="fontFile.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="Light.cpp" />
@@ -222,7 +224,9 @@
     <ClInclude Include="ConvolveLightProbe.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="Drawable.h" />
+    <ClInclude Include="Editor.h" />
     <ClInclude Include="FileManager.h" />
+    <ClInclude Include="fontFile.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Input.h" />
@@ -262,6 +266,9 @@
     <None Include="Data\Materials\defMaterial.mat" />
     <None Include="Data\Models\cube.ctm" />
     <None Include="Data\Models\sphere.ctm" />
+    <None Include="Data\UI\editor.ui" />
+    <None Include="Data\UI\Fonts\editorFont.fnt" />
+    <None Include="Data\UI\game.ui" />
     <None Include="libyse32.dll" />
     <None Include="openctm.dll" />
     <None Include="settings.ini" />
@@ -271,6 +278,9 @@
   <ItemGroup>
     <Image Include="Data\Textures\defTexture.DDS" />
     <Image Include="Data\Textures\sky.dds" />
+    <Image Include="Data\UI\Fonts\editorFont_0.DDS" />
+    <Image Include="Data\UI\Fonts\editorFont_1.DDS" />
+    <Image Include="Data\UI\Fonts\editorFont_2.DDS" />
     <Image Include="Icon.ico" />
   </ItemGroup>
   <ItemGroup>
@@ -317,6 +327,12 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="Data\Shaders\skyPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Data\Shaders\textShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>

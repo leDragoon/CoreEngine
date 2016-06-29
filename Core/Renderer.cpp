@@ -19,13 +19,14 @@ void Renderer::init()
 		ZeroMemory(&swapDesc, sizeof(DXGI_SWAP_CHAIN_DESC));
 		swapDesc.BufferCount = 1;
 		swapDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-		swapDesc.BufferDesc.Width = outputWidth;
+		swapDesc.BufferDesc.Width = outputWidth - 20;
 		swapDesc.BufferDesc.Height = outputHeight;
 		swapDesc.BufferDesc.RefreshRate = rRate;
 		swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		swapDesc.OutputWindow = hWnd;
 		swapDesc.SampleDesc.Count = hardwareAntiAliasingCount;
 		swapDesc.SampleDesc.Quality = 0;
+
 		if (fullScreenMode == TRUE)
 		{
 			swapDesc.Windowed = FALSE;
@@ -34,11 +35,8 @@ void Renderer::init()
 		{
 			swapDesc.Windowed = TRUE;
 		}
-		swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 		
-		D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, NULL, NULL, NULL, D3D11_SDK_VERSION, &swapDesc, &swap, &dev, NULL, &devCon);
-		
-		if(dev == NULL)
+		if(D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, NULL, NULL, NULL, D3D11_SDK_VERSION, &swapDesc, &swap, &dev, NULL, &devCon) != S_OK)
 		{
 			MessageBox(NULL, "Renderer could not be initialized - D3D11CreateDeviceAndSwapChain failed", "Render Init Error", MB_OK | MB_ICONERROR);
 			exit(0);
@@ -98,6 +96,18 @@ void Renderer::init()
 			exit(0);
 		}
 
+		D3D11_BUFFER_DESC textBufferDesc;
+		ZeroMemory(&textBufferDesc, sizeof(D3D11_BUFFER_DESC));
+		textBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		textBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		textBufferDesc.ByteWidth = sizeof(textData);
+
+		if (dev->CreateBuffer(&textBufferDesc, NULL, &perTextDataConstantBuffer) != S_OK)
+		{
+			MessageBox(NULL, "Could not create text data constant buffer", "Buffer creation error", MB_ICONERROR | MB_OK);
+			exit(0);
+		}
+
 		D3D11_DEPTH_STENCIL_DESC normalDesc;
 		ZeroMemory(&normalDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
 
@@ -145,9 +155,15 @@ void Renderer::init()
 
 		devCon->OMSetRenderTargets(1, &backBuffer, depthStencilView);
 		devCon->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		devCon->VSSetConstantBuffers(0, 1, &perObjectVertexDataConstantBuffer);
+		devCon->PSSetConstantBuffers(1, 1, &perObjectPixelDataConstantBuffer);
+
+
 		backBufferTex->Release();
 		resize();
 		int i = 0;
+		isInitialized = true;
 	}
 
 	else
@@ -159,7 +175,7 @@ void Renderer::init()
 
 void Renderer::render()
 {
-	float time = (float)clock();
+	time_t time = clock();
 	deltaTime = (time - timeOld) / 1000;
 	timeOld = time;
 
@@ -179,8 +195,6 @@ void Renderer::render()
 			perObjectPixelDataToBeSent.cameraPosition = XMVectorSet(cameras[i]->getPosition().x, cameras[i]->getPosition().y, cameras[i]->getPosition().z, 1.0f);
 			devCon->UpdateSubresource(perObjectVertexDataConstantBuffer, NULL, NULL, &perObjectVertexDataToBeSent, NULL, NULL);
 			devCon->UpdateSubresource(perObjectPixelDataConstantBuffer, NULL, NULL, &perObjectPixelDataToBeSent, NULL, NULL);
-			devCon->VSSetConstantBuffers(0, 1, &perObjectVertexDataConstantBuffer);
-			devCon->PSSetConstantBuffers(1, 1, &perObjectPixelDataConstantBuffer);
 
 			int mCode = models[j]->getMaterialCode();
 			
@@ -248,40 +262,152 @@ void Renderer::render()
 		}
 	}
 
+	quadModel->setRotation(XMFLOAT3(0.0f, 0.0f, 0.0f));
+
 	devCon->OMSetRenderTargets(1, &backBuffer, depthStencilView);
 	devCon->OMSetDepthStencilState(depthDisabledState, NULL);
 	devCon->VSSetShader(*vertexShaders[quadModel->getVertexShaderCode()].getVertexShader(), NULL, NULL);
 	devCon->IASetInputLayout(*vertexShaders[quadModel->getVertexShaderCode()].getInputLayout());
 	currentVertexShader = quadModel->getVertexShaderCode();
-	devCon->PSSetShader(*pixelShaders[quadModel->getPixelShaderCode()].getPixelShader(), NULL, NULL);
-	currentPixelShader = quadModel->getPixelShaderCode();
-
-	devCon->PSSetShaderResources(0, 1, &renderTexture);
+	devCon->PSSetShader(*pixelShaders[postFXShader].getPixelShader(), NULL, NULL);
+	currentPixelShader = postFXShader;
 	unsigned int vSize = sizeof(Vertex);
 	unsigned int offset = 0;
 	devCon->IASetVertexBuffers(0, 1, quadModel->getVertexBuffer(), &vSize, &offset);
 	devCon->IASetIndexBuffer(*quadModel->getIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
-	quadModel->setPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
-	quadModel->setScale(XMFLOAT3(1.0f, 1.0f, 1.0f));
-	perObjectVertexDataToBeSent.world = XMMatrixTranspose(XMLoadFloat4x4(&quadModel->getWorldMatrix()));
-	devCon->UpdateSubresource(perObjectVertexDataConstantBuffer, NULL, NULL, &perObjectVertexDataToBeSent, NULL, NULL);
-	devCon->DrawIndexed(quadModel->getNumberOfIndices(), 0, 0);
 
-	for (unsigned int i = 0; i < guiManager.getNumGuiElements(); i++)
+	for (unsigned int i = 0; i < guiManager.getCurrentGuiLayout()->windows.size(); i++)
 	{
-		if (guiManager.getGuiElement(i)->getIsVisible() == true)
+		GuiWindow window = guiManager.getCurrentGuiLayout()->windows[i];
+
+		if (window.getIsVisible())
 		{
-			ID3D11ShaderResourceView* const v = guiManager.getGuiElement(i)->getTexture()->getResource();
-			devCon->PSSetShaderResources(0, 1, &v);
-			XMFLOAT2 pos = guiManager.getGuiElement(i)->getPosition();
-			XMFLOAT2 scl = guiManager.getGuiElement(i)->getScale();
+			if (window.getCurrentTexture()->getResource() == NULL)
+			{
+				ID3D11ShaderResourceView* const v = renderTexture;
+				devCon->PSSetShaderResources(0, 1, &v);
+			}
+
+			else
+			{
+				ID3D11ShaderResourceView* const v = window.getCurrentTexture()->getResource();
+				devCon->PSSetShaderResources(0, 1, &v);
+			}
+
+			XMFLOAT2 pos = window.getPosition();
+			XMFLOAT2 scl = window.getScale();
 			quadModel->setPosition(XMFLOAT3(pos.x, pos.y - scl.y, 1.0f));
 			quadModel->setScale(XMFLOAT3(scl.x, scl.y, 1.0f));
 			perObjectVertexDataToBeSent.world = XMMatrixTranspose(XMLoadFloat4x4(&quadModel->getWorldMatrix()));
 			devCon->UpdateSubresource(perObjectVertexDataConstantBuffer, NULL, NULL, &perObjectVertexDataToBeSent, NULL, NULL);
 			devCon->DrawIndexed(quadModel->getNumberOfIndices(), 0, 0);
+
+			for (int j = 0; j < 4; j++)
+			{
+				quadModel->setRotation(XMFLOAT3(0.0f, 0.0f, 90.0f * j));
+				
+				if (j == 0)
+				{
+					ID3D11ShaderResourceView* const v = window.getWindowStyle()->verticalEdge.getResource();
+					devCon->PSSetShaderResources(0, 1, &v);
+					quadModel->setScale(XMFLOAT3(1.0f, 0.02f, 1.0f));
+					quadModel->setPosition(XMFLOAT3(0.0f, 1.0f - 0.02f, 1.0f));
+					perObjectVertexDataToBeSent.world = XMMatrixTranspose(XMLoadFloat4x4(&quadModel->getWorldMatrix()));
+					devCon->UpdateSubresource(perObjectVertexDataConstantBuffer, NULL, NULL, &perObjectVertexDataToBeSent, NULL, NULL);
+					devCon->DrawIndexed(quadModel->getNumberOfIndices(), 0, 0);
+				}
+
+				else if(j == 1)
+				{
+					ID3D11ShaderResourceView* const v = window.getWindowStyle()->verticalEdge.getResource();
+					devCon->PSSetShaderResources(0, 1, &v);
+					quadModel->setScale(XMFLOAT3(1.0f, 0.02f * ((float)outputHeight / outputWidth), 1.0f));
+					quadModel->setPosition(XMFLOAT3(-1.0f + 0.01f, 0.0f, 1.0f));
+					perObjectVertexDataToBeSent.world = XMMatrixTranspose(XMLoadFloat4x4(&quadModel->getWorldMatrix()));
+					devCon->UpdateSubresource(perObjectVertexDataConstantBuffer, NULL, NULL, &perObjectVertexDataToBeSent, NULL, NULL);
+					devCon->DrawIndexed(quadModel->getNumberOfIndices(), 0, 0);
+				}
+
+				else if(j == 2)
+				{
+					ID3D11ShaderResourceView* const v = window.getWindowStyle()->verticalEdge.getResource();
+					devCon->PSSetShaderResources(0, 1, &v);
+					quadModel->setScale(XMFLOAT3(1.0f, 0.02f, 1.0f));
+					quadModel->setPosition(XMFLOAT3(0.0f, -1.0f + 0.02f, 1.0f));
+					perObjectVertexDataToBeSent.world = XMMatrixTranspose(XMLoadFloat4x4(&quadModel->getWorldMatrix()));
+					devCon->UpdateSubresource(perObjectVertexDataConstantBuffer, NULL, NULL, &perObjectVertexDataToBeSent, NULL, NULL);
+					devCon->DrawIndexed(quadModel->getNumberOfIndices(), 0, 0);
+				}
+
+				else
+				{
+					ID3D11ShaderResourceView* const v = window.getWindowStyle()->verticalEdge.getResource();
+					devCon->PSSetShaderResources(0, 1, &v);
+					quadModel->setScale(XMFLOAT3(1.0f, 0.02f * ((float)outputHeight / outputWidth), 1.0f));
+					quadModel->setPosition(XMFLOAT3(1.0f - 0.01f, 0.0f, 1.0f));
+					perObjectVertexDataToBeSent.world = XMMatrixTranspose(XMLoadFloat4x4(&quadModel->getWorldMatrix()));
+					devCon->UpdateSubresource(perObjectVertexDataConstantBuffer, NULL, NULL, &perObjectVertexDataToBeSent, NULL, NULL);
+					devCon->DrawIndexed(quadModel->getNumberOfIndices(), 0, 0);
+				}
+			}
+
+			quadModel->setRotation(XMFLOAT3(0.0f, 0.0f, 0.0f));
+
+			for (unsigned int j = 0; j < window.getNumberOfHudElements(); j++)
+			{
+				if (window.getHudElement(j)->getIsVisible() == true)
+				{
+					ID3D11ShaderResourceView* const v = window.getHudElement(j)->getCurrentTexture()->getResource();
+					devCon->PSSetShaderResources(0, 1, &v);
+					XMFLOAT2 pos = window.getHudElement(j)->getPosition();
+					XMFLOAT2 scl = window.getHudElement(j)->getScale();
+					quadModel->setPosition(XMFLOAT3(pos.x, pos.y, 1.0f));
+					quadModel->setScale(XMFLOAT3(scl.x, scl.y, 1.0f));
+					perObjectVertexDataToBeSent.world = XMMatrixTranspose(XMLoadFloat4x4(&quadModel->getWorldMatrix()));
+					devCon->UpdateSubresource(perObjectVertexDataConstantBuffer, NULL, NULL, &perObjectVertexDataToBeSent, NULL, NULL);
+					devCon->DrawIndexed(quadModel->getNumberOfIndices(), 0, 0);
+				}
+			}
+
+			devCon->PSSetShader(*pixelShaders[textShader].getPixelShader(), NULL, NULL);
+			currentPixelShader = textShader;
+			quadModel->setRotation(XMFLOAT3(0.0f, 0.0f, 90.0f));
+
+			for (unsigned int j = 0; j < window.getNumberOfTextElements(); j++)
+			{
+				int currentFontSheet = 0;
+				ID3D11ShaderResourceView* const v = window.getTextElement(j)->getFont()->getFontSheet(currentFontSheet)->getResource();
+				devCon->PSSetShaderResources(0, 1, &v);
+
+				float sumOfPositions = 0;
+				for (unsigned int k = 0; k < window.getTextElement(j)->getText().size(); k++)
+				{
+					GuiTextCharacter character = window.getTextElement(j)->getFont()->getCharacter(window.getTextElement(j)->getText()[k]);
+					quadModel->setScale(XMFLOAT3(window.getTextElement(j)->getScale().x * ((float)character.height / 256), window.getTextElement(j)->getScale().y * ((float)outputHeight / outputWidth) * ((float)character.width / 256), 1.0f));
+
+					if (character.fontSheet != currentFontSheet)
+					{
+						currentFontSheet = character.fontSheet;
+						ID3D11ShaderResourceView* const v = window.getTextElement(j)->getFont()->getFontSheet(currentFontSheet)->getResource();
+						devCon->PSSetShaderResources(0, 1, &v);
+					}
+
+					
+					quadModel->setPosition(XMFLOAT3(((window.getTextElement(j)->getPosition().x + sumOfPositions + ((float)character.width / outputWidth)) * (outputWidth / outputHeight)) - 1.0f, window.getTextElement(j)->getPosition().y, 1.0f));
+					perObjectVertexDataToBeSent.world = XMMatrixTranspose(XMLoadFloat4x4(&quadModel->getWorldMatrix()));
+					devCon->UpdateSubresource(perObjectVertexDataConstantBuffer, NULL, NULL, &perObjectVertexDataToBeSent, NULL, NULL);
+
+					XMFLOAT4 toSend = XMFLOAT4((float)character.xPos, (float)character.yPos, (float)character.width, (float)character.height);
+					textDataToBeSent.positionScale = XMLoadFloat4(&toSend);
+					devCon->UpdateSubresource(perTextDataConstantBuffer, NULL, NULL, &textDataToBeSent, NULL, NULL);
+					devCon->VSSetConstantBuffers(3, 1, &perTextDataConstantBuffer);
+					devCon->DrawIndexed(quadModel->getNumberOfIndices(), 0, 0);
+					sumOfPositions += ((float)character.width / outputWidth) * ((float)outputWidth / outputHeight);
+				}
+			}
 		}
 	}
+
 
 	swap->Present(0, 0);
 }
@@ -752,6 +878,16 @@ void Renderer::loadAllShaders()
 			shaderCode->Release();
 			pixelShaders[i].setInitialized(true);
 		}
+
+		if (pixelShaders[i].getName() == "postFXPixelShader")
+		{
+			postFXShader = i;
+		}
+
+		else if (pixelShaders[i].getName() == "textShader")
+		{
+			textShader = i;
+		}
 	}
 }
 
@@ -1193,7 +1329,7 @@ void Renderer::setVertexShaders(vector<VertexShader> toSet)
 	vertexShaders = toSet;
 }
 
-float Renderer::getDeltaTime()
+time_t Renderer::getDeltaTime()
 {
 	return deltaTime;
 }
@@ -1239,32 +1375,83 @@ GuiManager *Renderer::getGuiManager()
 
 void Renderer::updateGuiTextures()
 {
-	for (unsigned int i = 0; i < guiManager.getNumGuiElements(); i++)
+	for (unsigned int i = 0; i < guiManager.getCurrentGuiLayout()->windows.size(); i++)
 	{
-		if (guiManager.getGuiElement(i)->getNeedsToBeLoaded() == true)
+		GuiWindow window = guiManager.getCurrentGuiLayout()->windows[i];
+
+		for (unsigned int j = 0; j < window.getNumberOfHudElements(); j++)
 		{
-			for (unsigned int j = 0; j < textures.size(); j++)
+			if (window.getHudElement(j)->getNeedsToBeLoaded() == true)
 			{
-				if (guiManager.getGuiElement(i)->getTextureName() == textures[j].getName())
+				for (unsigned int k = 0; k < textures.size(); k++)
 				{
-					guiManager.getGuiElement(i)->setTexture(&textures[j]);
+					for (unsigned int l = 0; l < window.getHudElement(j)->getNumberOfTexturesToBeLoaded(); l++)
+					{
+						if (window.getHudElement(j)->getTexturesToBeLoaded()[l] == textures[k].getName())
+						{
+							window.getHudElement(j)->addTexture(&textures[j]);
+						}
+					}
 				}
 
-				if (guiManager.getGuiElement(i)->getHoverTextureName() == textures[j].getName())
+				if (window.getHudElement(j)->getNumberOfTexturesToBeLoaded() > window.getHudElement(j)->getNumberOfTextures())
 				{
-					guiManager.getGuiElement(i)->setHoverTexture(&textures[j]);
+					MessageBoxA(NULL, ("Could not find texture for UI element: " + window.getHudElement(j)->getName()).c_str(), "GUI display error", MB_ICONERROR | MB_OK);
+					exit(0);
 				}
-			}
 
-			if (guiManager.getGuiElement(i)->getTexture() == NULL || guiManager.getGuiElement(i)->getHoverTexture() == NULL)
-			{
-				MessageBoxA(NULL, ("Could not find texture for UI element: " + guiManager.getGuiElement(i)->getName()).c_str(), "GUI display error", MB_ICONERROR | MB_OK);
-				exit(0);
+				window.getHudElement(j)->setNeedToBeLoaded(false);
 			}
-
-			guiManager.getGuiElement(i)->setNeedToBeLoaded(false);
 		}
 	}
+
+	for (unsigned int i = 0; i < guiManager.getCurrentGuiLayout()->fonts.size(); i++)
+	{
+		for (unsigned int j = 0; j < textures.size(); j++)
+		{
+			for (unsigned int k = 0; k < guiManager.getCurrentGuiLayout()->fonts[i].getFontSheetsToLoad().size(); k++)
+			{
+				if (guiManager.getCurrentGuiLayout()->fonts[i].getFontSheetsToLoad()[k] == textures[j].getName())
+				{
+					guiManager.getCurrentGuiLayout()->fonts[i].addFontSheet(textures[j]);
+				}
+			}	
+		}
+
+		for (unsigned int k = 0; k < guiManager.getCurrentGuiLayout()->windows.size(); k++)
+		{
+			for (unsigned int m = 0; m < guiManager.getCurrentGuiLayout()->windows[k].getNumberOfTextElements(); m++)
+			{
+				if (guiManager.getCurrentGuiLayout()->windows[k].getTextElement(m)->getFont()->getName() == guiManager.getCurrentGuiLayout()->fonts[i].getName())
+				{
+					guiManager.getCurrentGuiLayout()->windows[k].getTextElement(m)->setFont(guiManager.getCurrentGuiLayout()->fonts[i]);
+				}
+			}
+		}
+	}
+}
+
+bool Renderer::getIsInitialized()
+{
+	return isInitialized;
+}
+
+ID3D11ShaderResourceView *Renderer::getBackBuffer()
+{
+	return renderTexture;
+}
+
+Texture *Renderer::getTexture(string toGet)
+{
+	for (unsigned int i = 0; i < textures.size(); i++)
+	{
+		if (textures[i].getName() == toGet)
+		{
+			return &textures[i];
+		}
+	}
+
+	return nullptr;
 }
 
 void Renderer::add(Model* toAdd)

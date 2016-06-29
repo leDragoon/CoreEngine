@@ -25,6 +25,9 @@ private:
 	vector<Model> sceneModels;
 	vector<Camera> sceneCameras;
 	Camera sceneCamera;
+	GuiLayout rootLayout;
+	GuiWindow rootWindow;
+	Texture backBuffer;
 	bool sceneAndGlobalAssetListCombined = false;
 public:
 	void load();

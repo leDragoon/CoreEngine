@@ -2,6 +2,7 @@
 
 using namespace std;
 
+bool editMode = false;
 bool running = true;
 Renderer renderer = Renderer();
 AudioHandler soundHandler = AudioHandler();
@@ -15,6 +16,8 @@ Scene rootScene;
 void initSettings();
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	inputHandler.handleMessage(hWnd, msg, wParam, lParam);
+
 	switch (msg)
 	{
 	case WM_DESTROY:
@@ -24,7 +27,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		running = false;
 		break;
 	case WM_SIZE:
-		renderer.resize(LOWORD(lParam), HIWORD(lParam));
+		if (renderer.getIsInitialized())
+		{
+			renderer.resize(LOWORD(lParam), HIWORD(lParam));
+		}
+		break;
+	case WM_NCHITTEST:
+		if (GET_X_LPARAM(lParam) > window.getWindowPosition().x && GET_X_LPARAM(lParam) < window.getWindowPosition().x + renderer.getSize().x)
+		{
+			if (GET_Y_LPARAM(lParam) > window.getWindowPosition().y && GET_Y_LPARAM(lParam) < window.getWindowPosition().y + (0.02 * window.getWindowSize().y))
+			{
+				return(HTCAPTION);
+			}
+		}
 		break;
 	default:
 		MSG m;
@@ -43,7 +58,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	initSettings();
-	ShowCursor(FALSE);
+	//ShowCursor(FALSE);
 
 	WNDCLASSEX wClass;
 	ZeroMemory(&wClass, sizeof(WNDCLASSEX));
@@ -67,7 +82,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		exit(0);
 	}
 
-	HWND hWnd = CreateWindowEx(NULL, "wClass", window.getWindowTitle().c_str(), WS_OVERLAPPEDWINDOW, window.getWindowPosition().x, window.getWindowPosition().y, window.getWindowSize().x, window.getWindowSize().y, NULL, NULL, hInstance, NULL);
+	HWND hWnd = CreateWindowEx(WS_EX_APPWINDOW, "wClass", window.getWindowTitle().c_str(), WS_POPUP, 100, 100, window.getWindowSize().x, window.getWindowSize().y, NULL, NULL, hInstance, NULL);
 
 	if (!hWnd)
 	{
@@ -86,8 +101,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	ShowWindow(hWnd, true);
 	UpdateWindow(hWnd);
+	editMode = programSettings.getBool("CORE", "editMode");
 
-	onGameStart(&renderer, &soundHandler, &inputHandler, &physicsHandler, &scriptHandler, &rootScene);
+	onGameStart(&renderer, &soundHandler, &inputHandler, &physicsHandler, &scriptHandler, &rootScene, editMode);
 
 	MSG msg;
 	
@@ -101,7 +117,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-
+		
 		renderer.render();
 		soundHandler.update();
 		scriptHandler.update();
@@ -117,10 +133,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			}
 		}
 
-		onTick(&renderer, &soundHandler, &inputHandler, &physicsHandler, &scriptHandler, &rootScene);
+		onTick(&renderer, &soundHandler, &inputHandler, &physicsHandler, &scriptHandler, &rootScene, editMode);
 	}
 
-	onGameExit(&renderer, &soundHandler, &inputHandler, &physicsHandler, &scriptHandler, &rootScene);
+	onGameExit(&renderer, &soundHandler, &inputHandler, &physicsHandler, &scriptHandler, &rootScene, editMode);
 	DestroyWindow(hWnd);
 	hWnd = NULL;
 	return 0;

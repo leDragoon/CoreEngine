@@ -255,6 +255,7 @@ void Camera::updateProjection()
 	if (orthoPerspective == false)
 	{
 		XMStoreFloat4x4(&projection, XMMatrixPerspectiveFovLH(XMConvertToRadians(fieldOfView), (float)renderHeight / renderWidth, 1.0, 1000.0));
+		//XMStoreFloat4x4(&projection, XMMatrixPerspectiveFovLH(XMConvertToRadians(fieldOfView), (float)renderWidth / renderHeight, 1.0, 1000.0));
 	}
 
 	else

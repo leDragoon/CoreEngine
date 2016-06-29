@@ -87,5 +87,5 @@ float4 main(VS_OUT input) : SV_TARGET
 	float4 finalColor = saturate(diffuse * roughness) + saturate((specular * (1.0f - roughness)));
 	finalColor = NDOTL;
 
-	return pow(abs(finalColor), 1.0);
+	return pow(abs(finalColor), 1.0 / 2.2f);
 }

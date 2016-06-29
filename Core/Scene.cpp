@@ -24,6 +24,9 @@ void Scene::load()
 	quadModel.loadData("Data//Models//quad.obj");
 	
 	sceneModels.push_back(skyModel);
+	
+	backBuffer.setResource(NULL);
+	backBuffer.setName("backBuffer");
 
 	for (unsigned int i = 0; i < sceneAssetList.cameraNames.size(); i++)
 	{
@@ -46,6 +49,9 @@ void Scene::load()
 	}
 
 	renderer->add(&sceneCamera);
+	renderer->resize(renderer->getSize().x, renderer->getSize().y);
+
+	WindowStyle ws;
 
 	for (unsigned int i = 0; i < objectInstances.size(); i++)
 	{
@@ -111,6 +117,11 @@ void Scene::load()
 		tex.loadFromFile(sceneAssetList.texturePaths[i], renderer->getDevice());
 		tex.setName(sceneAssetList.textureNames[i]);
 		renderer->add(tex);
+
+		if (tex.getName() == "windowEdge")
+		{
+			ws.verticalEdge = tex;
+		}
 	}
 
 	for (unsigned int i = 0; i < sceneAssetList.materialNames.size(); i++)
@@ -130,12 +141,68 @@ void Scene::load()
 		scriptHandler->addScriptFromFile(sceneAssetList.scriptNames[i], sceneAssetList.scriptPaths[i]);
 	}
 
-	for (unsigned int i = 0; i < sceneAssetList.guiElementNames.size(); i++)
+	for (unsigned int i = 0; i < sceneAssetList.guiLayoutNames.size(); i++)
 	{
-		GuiElement gElement;
+		GuiLayout gLayout;
 		UserInterfaceFile guiFile;
-		gElement = guiFile.loadUserInterfaceElement(sceneAssetList.guiElementPaths[i]);
-		renderer->getGuiManager()->addGuiElement(gElement);
+		gLayout = guiFile.loadUserInterfaceLayout(sceneAssetList.guiLayoutPaths[i]);
+
+		for (unsigned int j = 0; j < sceneAssetList.fontNames.size(); j++)
+		{
+			GuiFont fnt;
+			fnt.setName(sceneAssetList.fontNames[j]);
+
+			for (unsigned int k = 0; k < sceneAssetList.fontTextures[j].size(); k++)
+			{
+				fnt.addFontSheet(sceneAssetList.fontTextures[j][k]);
+			}
+
+			fnt.loadFromFile(sceneAssetList.fontFiles[j]);
+			gLayout.fonts.push_back(fnt);
+		}
+
+		for (unsigned int j = 0; j < gLayout.windows.size(); j++)
+		{
+			gLayout.windows[j].addTexture(&backBuffer);
+			gLayout.windows[j].setCurrentTexture("backBuffer");
+
+			for (unsigned int k = 0; k < sceneAssetList.textureNames.size(); k++)
+			{
+				if (sceneAssetList.textureNames[k] == gLayout.windows[j].getWindowStyle()->topLeftCorner.getName())
+				{
+					gLayout.windows[j].getWindowStyle()->topLeftCorner = *renderer->getTexture(sceneAssetList.textureNames[k]);
+				}
+
+				if (sceneAssetList.textureNames[k] == gLayout.windows[j].getWindowStyle()->verticalEdge.getName())
+				{
+					gLayout.windows[j].getWindowStyle()->verticalEdge = *renderer->getTexture(sceneAssetList.textureNames[k]);
+				}
+
+				for (unsigned int l = 0; l < gLayout.windows[j].getNumberOfHudElements(); l++)
+				{
+					for (unsigned int m = 0; m < gLayout.windows[j].getHudElement(l)->getTexturesToBeLoaded().size(); m++)
+					{
+						if (sceneAssetList.textureNames[k] == gLayout.windows[j].getHudElement(l)->getTexturesToBeLoaded()[m])
+						{
+							gLayout.windows[j].getHudElement(l)->addTexture(renderer->getTexture(gLayout.windows[j].getHudElement(l)->getTexturesToBeLoaded()[m]));
+						}
+					}
+				}
+			}
+
+			for (unsigned int k = 0; k < gLayout.windows[j].getNumberOfTextElements(); k++)
+			{
+				for (unsigned int l = 0; l < gLayout.fonts.size(); l++)
+				{
+					if (gLayout.fonts[l].getName() == gLayout.windows[j].getTextElement(k)->getFontName())
+					{
+						gLayout.windows[j].getTextElement(k)->setFont(gLayout.fonts[l]);
+					}
+				}
+			}
+		}
+
+		renderer->getGuiManager()->addGuiLayout(gLayout);
 	}
 
 	for (unsigned int i = 0; i < sceneModels.size(); i++)
@@ -155,7 +222,7 @@ void Scene::load()
 			renderer->setBackGroundCubeMap(objectInstances[i].objectName);
 		}
 	}
-
+	
 	renderer->loadAllShaders();
 	renderer->loadAllMaterials();
 	renderer->setQuadModel(&quadModel);

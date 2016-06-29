@@ -6,48 +6,150 @@ void UserInterfaceFile::parse()
 
 	for (unsigned int i = 0; i < fileContents.size(); i++)
 	{
-		if (fileContents[i][0] == 't' && fileContents[i][1] == ' ')
+		if (fileContents[i][0] == 'w')
 		{
-			vector<string> sections = separateIntoSections(fileContents[i]);
-			gElement.setTextureName(sections[1]);
-		}
+			GuiWindow window;
+			WindowStyle ws;
+			int j = i + 1;
 
-		else if (fileContents[i][0] == 't' && fileContents[i][1] == 'h')
-		{
-			vector<string> sections = separateIntoSections(fileContents[i]);
-			gElement.setHoverTextureName(sections[1]);
-		}
+			for (j; fileContents[j][0] != 'e'; j++)
+			{
+				if (fileContents[j][0] == 'h' && fileContents[j][1] == 'e')
+				{
+					GuiHudElement hudElement;
+					int k = j + 1;
 
-		else if (fileContents[i][0] == 'p')
-		{
-			vector<string> sections = separateIntoSections(fileContents[i]);
-			gElement.setPosition(XMFLOAT2(stof(sections[1]), stof(sections[2])));
-		}
+					for (k; fileContents[k][0] != 'e'; k++)
+					{
+						if (fileContents[k][0] == 't')
+						{
+							vector<string> sections = separateIntoSections(fileContents[k]);
+							hudElement.addTexture(sections[1]);
+						}
 
-		else if (fileContents[i][0] == 's')
-		{
-			vector<string> sections = separateIntoSections(fileContents[i]);
-			gElement.setScale(XMFLOAT2(stof(sections[1]), stof(sections[2])));
+						else if (fileContents[k][0] == 'p')
+						{
+							vector<string> sections = separateIntoSections(fileContents[k]);
+							hudElement.setPosition(XMFLOAT2(stof(sections[1]), stof(sections[2])));
+						}
+
+						else if (fileContents[k][0] == 's')
+						{
+							vector<string> sections = separateIntoSections(fileContents[k]);
+							hudElement.setScale(XMFLOAT2(stof(sections[1]), stof(sections[2])));
+						}
+
+						else if (fileContents[k][0] == 'n')
+						{
+							vector<string> sections = separateIntoSections(fileContents[k]);
+							hudElement.setName(sections[1]);
+						}
+					}
+
+					window.add(hudElement);
+					j = k;
+				}
+
+				else if (fileContents[j][0] == 't' && fileContents[j][1] == 'e')
+				{
+					GuiTextElement textElement;
+					int k = j + 1;
+
+					for (k; fileContents[k][0] != 'e'; k++)
+					{
+						if (fileContents[k][0] == 't')
+						{
+							vector<string> sections = separateIntoSections(fileContents[k]);
+							textElement.setText(sections[1]);
+						}
+
+						else if (fileContents[k][0] == 'p')
+						{
+							vector<string> sections = separateIntoSections(fileContents[k]);
+							textElement.setPosition(XMFLOAT2(stof(sections[1]), stof(sections[2])));
+						}
+
+						else if (fileContents[k][0] == 's')
+						{
+							vector<string> sections = separateIntoSections(fileContents[k]);
+							textElement.setScale(XMFLOAT2(stof(sections[1]), stof(sections[2])));
+						}
+
+						else if (fileContents[k][0] == 'n')
+						{
+							vector<string> sections = separateIntoSections(fileContents[k]);
+							textElement.setName(sections[1]);
+						}
+
+						else if (fileContents[k][0] == 'f')
+						{
+							vector<string> sections = separateIntoSections(fileContents[k]);
+							textElement.setFont(sections[1]);
+						}
+					}
+
+					window.add(textElement);
+					j = k;
+				}
+
+				else if (fileContents[j][0] == 't' && fileContents[j][1] == 'w')
+				{
+					vector<string> sections = separateIntoSections(fileContents[j]);
+				}
+
+				else if (fileContents[j][0] == 's' && fileContents[j][1] == 't' && fileContents[j][2] == 'w')
+				{
+					vector<string> sections = separateIntoSections(fileContents[j]);
+					Texture topLeftCorner, verticalEdge;
+					ws.textureSize = stoi(sections[1]);
+					topLeftCorner.setName(sections[2]);
+					verticalEdge.setName(sections[3]);
+					ws.topLeftCorner = topLeftCorner;
+					ws.verticalEdge = verticalEdge;
+				}
+
+				else if (fileContents[j][0] == 'n' && fileContents[j][1] == 'w')
+				{
+					vector<string> sections = separateIntoSections(fileContents[j]);
+					window.setName(sections[1]);
+				}
+
+				else if (fileContents[j][0] == 'p' && fileContents[j][1] == 'w')
+				{
+					vector<string> sections = separateIntoSections(fileContents[j]);
+					window.setPosition(XMFLOAT2(stof(sections[1]), stof(sections[2])));
+				}
+
+				else if (fileContents[j][0] == 's' && fileContents[j][1] == 'w')
+				{
+					vector<string> sections = separateIntoSections(fileContents[j]);
+					window.setScale(XMFLOAT2(stof(sections[1]), stof(sections[2])));
+				}
+			}
+
+			window.setWindowStyle(ws);
+			gLayout.windows.push_back(window);
+			i = j;
 		}
 
 		else if (fileContents[i][0] == 'n')
 		{
 			vector<string> sections = separateIntoSections(fileContents[i]);
-			gElement.setName(sections[1]);
+			gLayout.name = sections[1];
 		}
 	}
 }
 
-GuiElement UserInterfaceFile::loadUserInterfaceElement(string filePath)
+GuiLayout UserInterfaceFile::loadUserInterfaceLayout(string filePath)
 {
 	load(filePath);
 	parse();
-	return gElement;
+	return gLayout;
 }
 
-GuiElement UserInterfaceFile::getGuiElement()
+GuiLayout UserInterfaceFile::getGuiLayout()
 {
-	return gElement;
+	return gLayout;
 }
 
 UserInterfaceFile::UserInterfaceFile()

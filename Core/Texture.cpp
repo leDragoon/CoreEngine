@@ -60,6 +60,11 @@ int Texture::getUsage()
 	return textureUsage;
 }
 
+void Texture::setResource(ID3D11ShaderResourceView *toSet)
+{
+	d3dTex = toSet;
+}
+
 Texture::Texture()
 {
 
