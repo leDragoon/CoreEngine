@@ -24,5 +24,5 @@ float4 main(VS_OUT input) : SV_TARGET
 	inputTexture.GetDimensions(tWidth, tHeight);
 	float2 tCoord = input.texcoord2;
 	float4 colour = inputTexture.Sample(texSample, tCoord);
-	return colour;
+	return lerp(float4(0.0f, 0.0f, 0.0f, 0.0f), colour, colour.r);
 }

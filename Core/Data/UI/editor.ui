@@ -23,9 +23,23 @@ s 0.165 0.9
 e
 te
 n toolsText
-p 0.5 0.0
-s 0.5 0.5
+p 0.185 0.842
+s 0.4 0.4
 t Tools
+f editorFont
+e
+te
+n assetsText
+p 0.020 0.1
+s 0.4 0.4
+t Assets
+f editorFont
+e
+te
+n propertiesText
+p 0.834 0.1
+s 0.4 0.4
+t Properties
 f editorFont
 e
 e

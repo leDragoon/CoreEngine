@@ -134,7 +134,7 @@ void Renderer::init()
 		ZeroMemory(&td, sizeof(D3D11_TEXTURE2D_DESC));
 		backBufferTex->GetDesc(&td);
 		td.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-		
+
 		if (dev->CreateTexture2D(&td, NULL, &presentTexture) != S_OK)
 		{
 			MessageBox(NULL, "Could not create staging texture for rendering", "Renderer Init Error", MB_ICONERROR | MB_OK);
@@ -153,14 +153,26 @@ void Renderer::init()
 			exit(0);
 		}
 
+		D3D11_BLEND_DESC bd;
+		ZeroMemory(&bd, sizeof(D3D11_BLEND_DESC));
+		bd.RenderTarget[0].BlendEnable = TRUE;
+		bd.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+		bd.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+		bd.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+		bd.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+		bd.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+		bd.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		bd.RenderTarget[0].RenderTargetWriteMask = 0x0f;
+		dev->CreateBlendState(&bd, &defBlendState);
+
+		devCon->OMSetBlendState(defBlendState, NULL, 0xffffffff);
+
 		devCon->OMSetRenderTargets(1, &backBuffer, depthStencilView);
 		devCon->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		devCon->VSSetConstantBuffers(0, 1, &perObjectVertexDataConstantBuffer);
 		devCon->PSSetConstantBuffers(1, 1, &perObjectPixelDataConstantBuffer);
 
-
-		backBufferTex->Release();
 		resize();
 		int i = 0;
 		isInitialized = true;
@@ -380,9 +392,19 @@ void Renderer::render()
 				devCon->PSSetShaderResources(0, 1, &v);
 
 				float sumOfPositions = 0;
+				GuiTextCharacter character;
+				GuiTextCharacter character1;
+
 				for (unsigned int k = 0; k < window.getTextElement(j)->getText().size(); k++)
 				{
-					GuiTextCharacter character = window.getTextElement(j)->getFont()->getCharacter(window.getTextElement(j)->getText()[k]);
+					character = window.getTextElement(j)->getFont()->getCharacter(window.getTextElement(j)->getText()[k]);
+					character1 = window.getTextElement(j)->getFont()->getCharacter(window.getTextElement(j)->getText()[k]);
+
+					if (k < window.getTextElement(j)->getText().size() - 1)
+					{
+						character1 = window.getTextElement(j)->getFont()->getCharacter(window.getTextElement(j)->getText()[k + 1]);
+					}
+
 					quadModel->setScale(XMFLOAT3(window.getTextElement(j)->getScale().x * ((float)character.height / 256), window.getTextElement(j)->getScale().y * ((float)outputHeight / outputWidth) * ((float)character.width / 256), 1.0f));
 
 					if (character.fontSheet != currentFontSheet)
@@ -392,8 +414,7 @@ void Renderer::render()
 						devCon->PSSetShaderResources(0, 1, &v);
 					}
 
-					
-					quadModel->setPosition(XMFLOAT3(((window.getTextElement(j)->getPosition().x + sumOfPositions + ((float)character.width / outputWidth)) * (outputWidth / outputHeight)) - 1.0f, window.getTextElement(j)->getPosition().y, 1.0f));
+					quadModel->setPosition(XMFLOAT3(((window.getTextElement(j)->getPosition().x * 2.0f) - 1.0f) + (window.getTextElement(j)->getScale().y * (sumOfPositions / 256)), (window.getTextElement(j)->getPosition().y * -2.0f) + 1.0f, 1.0f));
 					perObjectVertexDataToBeSent.world = XMMatrixTranspose(XMLoadFloat4x4(&quadModel->getWorldMatrix()));
 					devCon->UpdateSubresource(perObjectVertexDataConstantBuffer, NULL, NULL, &perObjectVertexDataToBeSent, NULL, NULL);
 
@@ -402,7 +423,7 @@ void Renderer::render()
 					devCon->UpdateSubresource(perTextDataConstantBuffer, NULL, NULL, &textDataToBeSent, NULL, NULL);
 					devCon->VSSetConstantBuffers(3, 1, &perTextDataConstantBuffer);
 					devCon->DrawIndexed(quadModel->getNumberOfIndices(), 0, 0);
-					sumOfPositions += ((float)character.width / outputWidth) * ((float)outputWidth / outputHeight);
+					sumOfPositions += (character.width / 2) + (character1.width / 2);
 				}
 			}
 		}
@@ -463,7 +484,6 @@ void Renderer::resize()
 	{
 		depthStencilView->Release();
 	}
-
 
 	DXGI_SWAP_CHAIN_DESC swapDesc;
 
@@ -527,9 +547,8 @@ void Renderer::resize()
 		exit(0);
 	}
 
-	ID3D11Texture2D *buffer;
-
-	if (swap->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&buffer) != S_OK)
+	
+	if (swap->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBufferTex) != S_OK)
 	{
 		MessageBox(NULL, "Could not get back buffer for resizing the display area", "Resize error", MB_ICONERROR | MB_OK);
 		exit(0);
@@ -537,10 +556,10 @@ void Renderer::resize()
 
 	D3D11_TEXTURE2D_DESC td;
 	ZeroMemory(&td, sizeof(D3D11_TEXTURE2D_DESC));
-	buffer->GetDesc(&td);
+	backBufferTex->GetDesc(&td);
 	td.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 
-	if (dev->CreateRenderTargetView(buffer, NULL, &backBuffer) != S_OK)
+	if (dev->CreateRenderTargetView(backBufferTex, NULL, &backBuffer) != S_OK)
 	{
 		MessageBox(NULL, "Could not create new render target for resizing the display area", "Resize error", MB_ICONERROR | MB_OK);
 		exit(0);
@@ -563,8 +582,6 @@ void Renderer::resize()
 		MessageBox(NULL, "Could not create staging render target for rendering", "Renderer Init Error", MB_ICONERROR | MB_OK);
 		exit(0);
 	}
-
-	buffer->Release();
 
 	ID3D11Texture2D *depthStencilBuffer = NULL;
 	D3D11_TEXTURE2D_DESC depthStencilDesc;
@@ -698,6 +715,8 @@ void Renderer::close()
 	normalDepthState->Release();
 	presentTexture->Release();
 	renderTexture->Release();
+	backBufferTex->Release();
+	defBlendState->Release();
 
 	for (unsigned int i = 0; i < vertexShaders.size(); i++)
 	{

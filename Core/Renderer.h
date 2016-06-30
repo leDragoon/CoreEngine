@@ -36,6 +36,7 @@ private:
 	ID3D11Texture2D *presentTexture = NULL;
 	ID3D11Texture2D *backBufferTex = NULL;
 	ID3D11ShaderResourceView *renderTexture = NULL;
+	ID3D11BlendState *defBlendState = NULL;
 	time_t deltaTime;
 	time_t timeOld;
 	int outputWidth = 1;

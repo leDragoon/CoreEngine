@@ -243,6 +243,8 @@
     <None Include="Data\UI\editor.ui" />
     <None Include="Data\UI\game.ui" />
     <None Include="Data\UI\Fonts\editorFont.fnt" />
+    <None Include="bmfont64.exe" />
+    <None Include="bmfont.bmfc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Icon.ico" />

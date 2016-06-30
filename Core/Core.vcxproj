@@ -259,6 +259,8 @@
     <ClInclude Include="WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="bmfont.bmfc" />
+    <None Include="bmfont64.exe" />
     <None Include="cmft.exe" />
     <None Include="ctmconv.exe" />
     <None Include="Data\globalAssetList.alst" />
